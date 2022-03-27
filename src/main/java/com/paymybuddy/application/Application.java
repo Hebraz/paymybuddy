@@ -2,8 +2,10 @@ package com.paymybuddy.application;
 
 import com.paymybuddy.application.model.User;
 import com.paymybuddy.application.repository.UserRepository;
+import com.paymybuddy.application.service.TransactionService;
 import com.paymybuddy.application.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,8 +20,12 @@ public class Application implements CommandLineRunner {
 		SpringApplication.run(Application.class, args);
 	}
 
+
+
 	@Autowired
 	UserService userService;
+	@Autowired
+	TransactionService transactionService;
 
 	@Autowired
 	UserRepository userRepository;
@@ -27,12 +33,17 @@ public class Application implements CommandLineRunner {
 	@Override
 	@Transactional
 	public void run(String... args) throws Exception {
-		User user1 = new User("toto@titi.fr","pwd", "toto","titi", 160);
+		/*User user1 = new User("toto@titi.fr","pwd", "toto","titi", 160);
 		User user2 = new User("tata@tutu.fr","pwd", "tata","tutu", 1500);
 		user1.getConnections().add(user2);
 		user1= userService.saveUser(user1);
 		System.out.println("added user : " +  user1.getId());
+		System.out.println("added user : " +  user2.getId());*/
 
-		userRepository.delete(user1);
+
+		transactionService.registerTransaction(1,2,3000, "My 3rd transaction");
+
+		User user = userRepository.findById(1).orElseThrow();
+		user.getTransactionsAsPayer().forEach(t -> System.out.println(t.getDate() + " : " + t.getTotalAmount()));
 	}
 }

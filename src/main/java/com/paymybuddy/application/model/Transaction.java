@@ -12,7 +12,8 @@ import java.time.Instant;
 public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+    @Column(name = "id_transaction")
+    private int idTransaction;
 
     private Instant date;
 
@@ -38,4 +39,11 @@ public class Transaction {
     @JoinColumn(name = "credit_id")
     private User credit;
 
+    public Transaction(){}
+    public Transaction( Instant date, long totalAmount, String description, long feeAmount) {
+        this.date = date;
+        this.totalAmount = totalAmount;
+        this.description = description;
+        this.feeAmount = feeAmount;
+    }
 }
