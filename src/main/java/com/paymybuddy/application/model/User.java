@@ -21,6 +21,8 @@ public class User {
 
     private String password;
 
+    private boolean enabled;
+
     @Column(name = "first_name")
     private String firstName;
 
@@ -62,6 +64,7 @@ public class User {
         transactionsAsCredit = new ArrayList<>();
         transactionsAsPayer = new ArrayList<>();
         bankAccounts = new ArrayList<>();
+        this.enabled = true;
     }
     public User(String email, String password, String firstName, String lastName, long balance) {
         this();

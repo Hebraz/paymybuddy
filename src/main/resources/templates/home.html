@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head>
+        <meta charset="UTF-8">
+        <title>Pay my buddy</title>
+    </head>
+    <body>
+        <h1>Welcome to home !</h1>
+        <a  href="javascript: document.logoutForm.submit()">Log out</a>
+        <form name="logoutForm" th:action="@{/logout}" method="post" th:hidden="true">
+            <input hidden type="submit" value="Logout" />
+        </form>
+    </body>
+</html>

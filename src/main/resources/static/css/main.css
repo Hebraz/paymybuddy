@@ -1,0 +1,33 @@
+/**{
+    border: 1px black solid;
+}*/
+
+#paymybuddy_title{
+    background: rgb(96,185,90);
+    background: linear-gradient(90deg, rgba(96,185,90,1) 0%, rgba(117,190,82,1) 50%, rgba(139,195,74,1) 100%);
+    padding: 0.65rem 1rem 0.65rem 1rem;
+    margin:0;
+    font-size: 1.25rem;
+    color: white;
+    border-radius: 0.5rem;
+}
+
+.bg-success{
+    background-color: #5CB85C!important;
+}
+
+.btn-success{
+    background-color: #5CB85C!important;
+}
+
+.link-primary, .link-secondary {
+    outline: none;
+    text-decoration: none;
+    font-weight:bolder;
+}
+
+tr {
+    line-height: 4rem;
+    min-height: 4rem;
+    height: 5rem;
+ }
