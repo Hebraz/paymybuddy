@@ -1,0 +1,17 @@
+header{
+    margin-bottom: 1rem;
+}
+
+header > * {
+    margin-top: 0.5rem;
+}
+
+#current_page_banner{
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+#current_page_banner > *{
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+}

@@ -7,9 +7,11 @@
     background: linear-gradient(90deg, rgba(96,185,90,1) 0%, rgba(117,190,82,1) 50%, rgba(139,195,74,1) 100%);
     padding: 0.65rem 1rem 0.65rem 1rem;
     margin:0;
+    text-align:center;
     font-size: 1.25rem;
     color: white;
     border-radius: 0.5rem;
+
 }
 
 .bg-success{

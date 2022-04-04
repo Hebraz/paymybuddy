@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -24,7 +23,6 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
         this.dataSource = dataSource;
     }
 
-
     @Override
     protected  void configure(AuthenticationManagerBuilder auth) throws Exception{
         auth.jdbcAuthentication()
@@ -42,11 +40,11 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
             .formLogin()
                 .loginPage("/login")
-                .defaultSuccessUrl("/home",false)
+                .defaultSuccessUrl("/home",true)
                 .and()
             .oauth2Login()
                 .loginPage("/login")
-                .defaultSuccessUrl("/home",false)
+                .defaultSuccessUrl("/home",true)
                 .and()
             .logout()
                 .permitAll();

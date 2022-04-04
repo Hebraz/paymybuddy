@@ -3,13 +3,36 @@
       xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
     <head>
         <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Pay my buddy</title>
+
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+                integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+
+        <!-- Font Awesome -->
+        <script src="https://kit.fontawesome.com/14273d579a.js" crossorigin="anonymous"></script>
+        <link rel="stylesheet" th:href="@{/css/main.css}"  href="../static/css/main.css">
+        <link rel="stylesheet" th:href="@{/css/header.css}"  href="../static/css/header.css">
     </head>
     <body>
-        <h1>Welcome to home !</h1>
-        <a  href="javascript: document.logoutForm.submit()">Log out</a>
-        <form name="logoutForm" th:action="@{/logout}" method="post" th:hidden="true">
-            <input hidden type="submit" value="Logout" />
-        </form>
+        <div th:replace="fragments/header :: header_template"></div>
+        <main>
+            <div>
+                <h1>Welcome home !</h1>
+                <p>Email: <span th:text="${user.email}">NA</span></p>
+                <p>First name: <span th:text="${user.firstName}">NA</span></p>
+                <p>Last name: <span th:text="${user.lastName}">NA</span></p>
+                <p>Balance: <span th:text="${user.balance}">NA</span></p>
+            </div>
+        </main>
+        <footer class="border-top">
+            <!-- Script js -->
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+                    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+                    crossorigin="anonymous"></script>
+        </footer>
     </body>
 </html>
