@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import javax.transaction.Transactional;
 import java.util.Optional;
@@ -40,10 +41,15 @@ public class Application implements CommandLineRunner {
 		System.out.println("added user : " +  user1.getId());
 		System.out.println("added user : " +  user2.getId());*/
 
+	/*	BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(); // Strength set as 16
+		String encodedPassword = encoder.encode("user123");
+		System.out.gig println("BCryptPasswordEncoder");
+		System.out.println(encodedPassword);
+		System.out.println("\n");
 
-		transactionService.registerTransaction(1,2,3000, "My 3rd transaction");
+	transactionService.registerTransaction(1,2,3000, "My 3rd transaction");
 
 		User user = userRepository.findById(1).orElseThrow();
-		user.getTransactionsAsPayer().forEach(t -> System.out.println(t.getDate() + " : " + t.getTotalAmount()));
+		user.getTransactionsAsPayer().forEach(t -> System.out.println(t.getDate() + " : " + t.getTotalAmount()));*/
 	}
 }

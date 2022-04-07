@@ -1,5 +1,6 @@
 package com.paymybuddy.application.controller.principalInfo;
 
+import com.paymybuddy.application.exception.PrincipalAuthenticationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,63 +18,59 @@ class UsernamePasswordPrincipalInfoTest {
 
     @Mock
     private UsernamePasswordAuthenticationToken authToken;
-
-    private UsernamePasswordPrincipalInfo usernamePasswordPrincipalInfo;
+    @Mock
+    private User userWithNullEmail;
 
     @BeforeEach
-    void initializeTest() {
-        usernamePasswordPrincipalInfo = new UsernamePasswordPrincipalInfo(authToken);
+    void initializeTest() throws PrincipalAuthenticationException {
+
     }
 
-    private User getUser(){
+    private User getNominalUser(){
         return new User("pierre.paul.oc@gmail.com","uiouio",AuthorityUtils.createAuthorityList("USER"));
     }
 
     @Test
-    void authenticationType() {
+    void authenticationType() throws PrincipalAuthenticationException{
+        //PREPARE
+        when(authToken.isAuthenticated()).thenReturn(true);
+        when(authToken.getPrincipal()).thenReturn(getNominalUser());
+        UsernamePasswordPrincipalInfo usernamePasswordPrincipalInfo = new UsernamePasswordPrincipalInfo(authToken);
+        //ACT
         PrincipalInfo.AuthenticationType type = usernamePasswordPrincipalInfo.authenticationType();
+        //CHECK
         assertThat(type).isEqualTo(PrincipalInfo.AuthenticationType.USERNAME_PASSWORD );
     }
 
     @Test
-    void emailNotAuthenticated() {
+    void UsernamePasswordPrincipalInfoNotAuthenticatedThrowException() throws PrincipalAuthenticationException{
         //PREPARE
         when(authToken.isAuthenticated()).thenReturn(false);
-        //ACT
-        String email = usernamePasswordPrincipalInfo.getEmail();
 
-        //CHECK
-        assertNull(email);
+        assertThrows(PrincipalAuthenticationException.class, () -> new UsernamePasswordPrincipalInfo(authToken));
+    }
+
+
+    @Test
+    void UsernamePasswordPrincipalInfoNullEmailThrowException() throws PrincipalAuthenticationException{
+        //PREPARE
+        when(userWithNullEmail.getUsername()).thenReturn(null);
+        when(authToken.isAuthenticated()).thenReturn(true);
+        when(authToken.getPrincipal()).thenReturn(userWithNullEmail);
+
+        assertThrows(PrincipalAuthenticationException.class, () -> new UsernamePasswordPrincipalInfo(authToken));
     }
 
     @Test
-    void emailOk() {
+    void UsernamePasswordPrincipalInfoNominal() throws PrincipalAuthenticationException {
         //PREPARE
         when(authToken.isAuthenticated()).thenReturn(true);
-        when(authToken.getPrincipal()).thenReturn(getUser());
-
-        //ACT
-        String email = usernamePasswordPrincipalInfo.getEmail();
-
+        when(authToken.getPrincipal()).thenReturn(getNominalUser());
+         //ACT
+        UsernamePasswordPrincipalInfo usernamePasswordPrincipalInfo = new UsernamePasswordPrincipalInfo(authToken);
         //CHECK
-        assertThat(email).isEqualTo("pierre.paul.oc@gmail.com");
-    }
-
-    @Test
-    void firstName() {
-        //ACT
-        String firstName = usernamePasswordPrincipalInfo.getFirstName();
-
-        //CHECK
-        assertNull(firstName);
-    }
-
-    @Test
-    void lastName() {
-        //ACT
-        String lastName = usernamePasswordPrincipalInfo.getLastName();
-
-        //CHECK
-        assertNull(lastName);
+        assertThat(usernamePasswordPrincipalInfo.getEmail()).isEqualTo("pierre.paul.oc@gmail.com");
+        assertNull(usernamePasswordPrincipalInfo.getFirstName());
+        assertNull(usernamePasswordPrincipalInfo.getLastName());
     }
 }

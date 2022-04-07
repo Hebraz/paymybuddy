@@ -3,6 +3,7 @@ package com.paymybuddy.application.controller;
 import com.paymybuddy.application.controller.principalInfo.OAuth2PrincipalInfo;
 import com.paymybuddy.application.controller.principalInfo.PrincipalInfo;
 import com.paymybuddy.application.controller.principalInfo.PrincipalInfoFactory;
+import com.paymybuddy.application.exception.PrincipalAuthenticationException;
 import com.paymybuddy.application.model.User;
 import com.paymybuddy.application.service.UserService;
 import jdk.jfr.MetadataDefinition;
@@ -23,6 +24,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.security.Principal;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.anyOf;
 import static org.junit.jupiter.api.Assertions.*;
@@ -64,17 +66,6 @@ class AuthenticationControllerTest {
     }
 
     @Test
-    void showHomeNullPrincipalInfo() throws Exception {
-        //PREPARE
-        when(principalInfoFactory.getPrincipalInfo(any())).thenReturn(null);
-        //ACT
-        authenticationController.showHome(principal,model);
-        //VERIFY
-        verify(userService, never()).findByEmail(any());
-        verify(model, never()).addAttribute(any());
-    }
-
-    @Test
     void showHomeOAuth2FirstConnection() throws Exception {
         //PREPARE
         final String email = "pierre.paul.oc@gmail.com";
@@ -88,7 +79,7 @@ class AuthenticationControllerTest {
         when(principalInfo.getEmail()).thenReturn(email);
         when(principalInfo.getFirstName()).thenReturn(firstName);
         when(principalInfo.getLastName()).thenReturn(lastName);
-        when(userService.findByEmail(any())).thenReturn(null);
+        when(userService.findByEmail(any())).thenReturn(Optional.empty());
         when(userService.saveUser(any())).thenReturn(new User(email,"",firstName,lastName,0));
 
         //ACT
@@ -123,7 +114,7 @@ class AuthenticationControllerTest {
         when(principalInfoFactory.getPrincipalInfo(any())).thenReturn(principalInfo);
         when(principalInfo.authenticationType()).thenReturn(PrincipalInfo.AuthenticationType.OAUTH2);
         when(principalInfo.getEmail()).thenReturn(email);
-        when(userService.findByEmail(any())).thenReturn(new User(email,"",firstName,lastName,0));
+        when(userService.findByEmail(any())).thenReturn(Optional.of(new User(email,"",firstName,lastName,0)));
 
         //ACT
         authenticationController.showHome(principal,model);
@@ -151,7 +142,7 @@ class AuthenticationControllerTest {
         when(principalInfoFactory.getPrincipalInfo(any())).thenReturn(principalInfo);
         when(principalInfo.authenticationType()).thenReturn(PrincipalInfo.AuthenticationType.USERNAME_PASSWORD);
         when(principalInfo.getEmail()).thenReturn(email);
-        when(userService.findByEmail(any())).thenReturn(new User(email,"",firstName,lastName,0));
+        when(userService.findByEmail(any())).thenReturn(Optional.of(new User(email,"",firstName,lastName,0)));
 
         //ACT
         authenticationController.showHome(principal,model);
@@ -165,5 +156,24 @@ class AuthenticationControllerTest {
                         User::getFirstName,
                         User::getLastName)
                 .containsExactly(email,firstName,lastName);
+    }
+
+    @Test
+    void showHomeUserNotFoundInDb() throws Exception {
+        //PREPARE
+        final String email = "pierre.paul.oc@gmail.com";
+        final String firstName = "Pierre";
+        final String lastName = "Paul";
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+
+        when(principalInfoFactory.getPrincipalInfo(any())).thenReturn(principalInfo);
+        when(principalInfo.authenticationType()).thenReturn(PrincipalInfo.AuthenticationType.USERNAME_PASSWORD);
+        when(principalInfo.getEmail()).thenReturn(email);
+        when(userService.findByEmail(any())).thenReturn(Optional.empty());
+
+        //ACT
+        assertThrows(PrincipalAuthenticationException.class,
+                () -> authenticationController.showHome(principal,model));
     }
 }

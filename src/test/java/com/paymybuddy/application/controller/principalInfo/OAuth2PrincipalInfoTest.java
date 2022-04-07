@@ -1,13 +1,17 @@
 package com.paymybuddy.application.controller.principalInfo;
 
+import com.paymybuddy.application.exception.PrincipalAuthenticationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -23,147 +27,163 @@ class OAuth2PrincipalInfoTest {
     @Mock
     private OAuth2AuthenticationToken authToken;
 
-    private OAuth2PrincipalInfo oAuth2PrincipalInfo;
-
-    private DefaultOidcUser defaultOidcUser;
+    private     Map<String, Object> oidcIdTokenNominalClaims;
 
     @BeforeEach
-    void initializeTest(){
-        oAuth2PrincipalInfo = new OAuth2PrincipalInfo(authToken);
-
-        Map<String, Object> claims = new HashMap<>();
-        claims.putIfAbsent("at_hash","dzfazefe");
-        claims.putIfAbsent("sub","2575725752");
-        claims.putIfAbsent("email_verified","true");
-        claims.putIfAbsent("iss","https://accounts.titi.com");
-        claims.putIfAbsent("given_name","Pierre");
-        claims.putIfAbsent("locale","fr");
-        claims.putIfAbsent("nonce","tjtrjrjy");
-        claims.putIfAbsent("picture","https://fgjfjfg");
-        claims.putIfAbsent("aud","[fhjjg-rtyr.apps.ytut.com]");
-        claims.putIfAbsent("azp","gjghj-ytjty.apps.jgj.com");
-        claims.putIfAbsent("name","Pierre Paul");
-        claims.putIfAbsent("exp","2022-04-04T09:16:32Z");
-        claims.putIfAbsent("family_name","Paul");
-        claims.putIfAbsent("iat","2022-04-04T08:16:32Z");
-        claims.putIfAbsent("email","pierre.paul.oc@gmail.com");
-        OidcIdToken oidcIdToken = new OidcIdToken("eryery.eytryterfdgdfhVYGGbw-zerz-eztret-flLN-38387357-4373", Instant.now(), Instant.now().plusSeconds(30), claims);
-        defaultOidcUser = new DefaultOidcUser(null, oidcIdToken);
-
+    void initializeTest() throws PrincipalAuthenticationException {
+        oidcIdTokenNominalClaims = new HashMap<>();
+        oidcIdTokenNominalClaims.putIfAbsent("at_hash","dzfazefe");
+        oidcIdTokenNominalClaims.putIfAbsent("sub","2575725752");
+        oidcIdTokenNominalClaims.putIfAbsent("email_verified","true");
+        oidcIdTokenNominalClaims.putIfAbsent("iss","https://accounts.titi.com");
+        oidcIdTokenNominalClaims.putIfAbsent("given_name","Pierre");
+        oidcIdTokenNominalClaims.putIfAbsent("locale","fr");
+        oidcIdTokenNominalClaims.putIfAbsent("nonce","tjtrjrjy");
+        oidcIdTokenNominalClaims.putIfAbsent("picture","https://fgjfjfg");
+        oidcIdTokenNominalClaims.putIfAbsent("aud","[fhjjg-rtyr.apps.ytut.com]");
+        oidcIdTokenNominalClaims.putIfAbsent("azp","gjghj-ytjty.apps.jgj.com");
+        oidcIdTokenNominalClaims.putIfAbsent("name","Pierre Paul");
+        oidcIdTokenNominalClaims.putIfAbsent("exp","2022-04-04T09:16:32Z");
+        oidcIdTokenNominalClaims.putIfAbsent("family_name","Paul");
+        oidcIdTokenNominalClaims.putIfAbsent("iat","2022-04-04T08:16:32Z");
+        oidcIdTokenNominalClaims.putIfAbsent("email","pierre.paul.oc@gmail.com");
     }
 
+
+
     @Test
-    void authenticationType() {
-        PrincipalInfo.AuthenticationType type = oAuth2PrincipalInfo.authenticationType();
+    void authenticationType() throws PrincipalAuthenticationException {
+        //PREPARE
+        when(authToken.isAuthenticated()).thenReturn(true);
+        when(authToken.getPrincipal()).thenReturn(getNominalOidcUser());
+        OAuth2PrincipalInfo auth2PrincipalInfo = new OAuth2PrincipalInfo(authToken);
+        //ACT
+        PrincipalInfo.AuthenticationType type = auth2PrincipalInfo.authenticationType();
         assertThat(type).isEqualTo(PrincipalInfo.AuthenticationType.OAUTH2);
     }
 
     @Test
-    void emailNullWhenNotOidcIdToken() {
+    void OAuth2PrincipalInfoNotAuthenticatedThrowException() throws PrincipalAuthenticationException {
+        //PREPARE
+        when(authToken.isAuthenticated()).thenReturn(false);
+
+        //ACT
+        assertThrows(PrincipalAuthenticationException.class, () -> new OAuth2PrincipalInfo(authToken));
+    }
+
+    @Test
+    void OAuth2PrincipalInfoNullPrincipalThrowException() throws PrincipalAuthenticationException {
         //PREPARE
         when(authToken.isAuthenticated()).thenReturn(true);
         when(authToken.getPrincipal()).thenReturn(null);
-        //ACT
-        String email = oAuth2PrincipalInfo.getEmail();
 
-        //CHECK
-        assertNull(email);
+        //ACT
+        assertThrows(PrincipalAuthenticationException.class, () -> new OAuth2PrincipalInfo(authToken));
     }
 
     @Test
-    void emailNullWhenNotAuthenticated() {
-        //PREPARE
-        when(authToken.isAuthenticated()).thenReturn(false);
-        //ACT
-        String email = oAuth2PrincipalInfo.getEmail();
-
-        //CHECK
-        assertNull(email);
-    }
-
-    @Test
-    void emailOK() {
+    void OAuth2PrincipalInfoNoOidcIdTokenThrowException() throws PrincipalAuthenticationException {
         //PREPARE
         when(authToken.isAuthenticated()).thenReturn(true);
-        when(authToken.getPrincipal()).thenReturn(defaultOidcUser);
+        when(authToken.getPrincipal()).thenReturn(new DefaultOAuth2User(AuthorityUtils.createAuthorityList("USER"), Map.of("Key1", "value1"), "Key1"));
 
         //ACT
-        String email = oAuth2PrincipalInfo.getEmail();
-
-        //CHECK
-        assertThat(email).isEqualTo("pierre.paul.oc@gmail.com");
+        assertThrows(PrincipalAuthenticationException.class, () -> new OAuth2PrincipalInfo(authToken));
     }
 
     @Test
-    void firstNameNullWhenNotAuthenticated() {
-        //PREPARE
-        when(authToken.isAuthenticated()).thenReturn(false);
-        //ACT
-        String firstName = oAuth2PrincipalInfo.getFirstName();
-
-        //CHECK
-        assertNull(firstName);
-    }
-
-    @Test
-    void firstNameNullWhenNotOidcIdToken() {
+    void OAuth2PrincipalInfoNoEmailThrowException() throws PrincipalAuthenticationException {
         //PREPARE
         when(authToken.isAuthenticated()).thenReturn(true);
-        when(authToken.getPrincipal()).thenReturn(null);
-        //ACT
-        String firstName = oAuth2PrincipalInfo.getFirstName();
+        when(authToken.getPrincipal()).thenReturn(getOidcUserWithoutEmail());
 
-        //CHECK
-        assertNull(firstName);
+        //ACT
+        assertThrows(PrincipalAuthenticationException.class, () -> new OAuth2PrincipalInfo(authToken));
     }
 
     @Test
-    void firstNameOK() {
+    void OAuth2PrincipalInfoNominal() throws PrincipalAuthenticationException {
         //PREPARE
         when(authToken.isAuthenticated()).thenReturn(true);
-        when(authToken.getPrincipal()).thenReturn(defaultOidcUser);
+        when(authToken.getPrincipal()).thenReturn(getNominalOidcUser());
 
         //ACT
-        String firstName = oAuth2PrincipalInfo.getFirstName();
+        OAuth2PrincipalInfo auth2PrincipalInfo = new OAuth2PrincipalInfo(authToken);
 
         //CHECK
-        assertThat(firstName).isEqualTo("Pierre");
+        assertThat(auth2PrincipalInfo.getEmail()).isEqualTo("pierre.paul.oc@gmail.com");
+        assertThat(auth2PrincipalInfo.getFirstName()).isEqualTo("Pierre");
+        assertThat(auth2PrincipalInfo.getLastName()).isEqualTo("Paul");
     }
 
     @Test
-    void lastNameNullWhenNotAuthenticated() {
-        //PREPARE
-        when(authToken.isAuthenticated()).thenReturn(false);
-        //ACT
-        String lastName = oAuth2PrincipalInfo.getLastName();
-
-        //CHECK
-        assertNull(lastName);
-    }
-
-    @Test
-    void lastNameNullWhenNotOidcIdToken() {
+    void OAuth2PrincipalInfoNominalFirstNameNull() throws PrincipalAuthenticationException {
         //PREPARE
         when(authToken.isAuthenticated()).thenReturn(true);
-        when(authToken.getPrincipal()).thenReturn(null);
+        when(authToken.getPrincipal()).thenReturn(getNominalWithoutFirstName());
+
         //ACT
-        String lastName = oAuth2PrincipalInfo.getLastName();
+        OAuth2PrincipalInfo auth2PrincipalInfo = new OAuth2PrincipalInfo(authToken);
 
         //CHECK
-        assertNull(lastName);
+        assertThat(auth2PrincipalInfo.getEmail()).isEqualTo("pierre.paul.oc@gmail.com");
+        assertNull(auth2PrincipalInfo.getFirstName());
+        assertThat(auth2PrincipalInfo.getLastName()).isEqualTo("Paul");
     }
-
 
     @Test
-    void lastNameOK() {
+    void OAuth2PrincipalInfoNominalLastNameNull() throws PrincipalAuthenticationException {
         //PREPARE
         when(authToken.isAuthenticated()).thenReturn(true);
-        when(authToken.getPrincipal()).thenReturn(defaultOidcUser);
+        when(authToken.getPrincipal()).thenReturn(getNominalWithoutLastName());
 
         //ACT
-        String lastName = oAuth2PrincipalInfo.getLastName();
+        OAuth2PrincipalInfo auth2PrincipalInfo = new OAuth2PrincipalInfo(authToken);
 
         //CHECK
-        assertThat(lastName).isEqualTo("Paul");
+        assertThat(auth2PrincipalInfo.getEmail()).isEqualTo("pierre.paul.oc@gmail.com");
+        assertThat(auth2PrincipalInfo.getFirstName()).isEqualTo("Pierre");
+        assertNull(auth2PrincipalInfo.getLastName());
     }
+
+    private DefaultOidcUser getNominalOidcUser(){
+
+        OidcIdToken oidcIdToken = new OidcIdToken(
+                "eryery.eytryterfdgdfhVYGGbw-zerz-eztret-flLN-38387357-4373",
+                Instant.now(),
+                Instant.now().plusSeconds(30),
+                oidcIdTokenNominalClaims);
+        return new DefaultOidcUser(null, oidcIdToken);
+    }
+
+    private DefaultOidcUser getOidcUserWithoutEmail(){
+        oidcIdTokenNominalClaims.remove("email");
+        OidcIdToken oidcIdToken = new OidcIdToken(
+                "eryery.eytryterfdgdfhVYGGbw-zerz-eztret-flLN-38387357-4373",
+                Instant.now(),
+                Instant.now().plusSeconds(30),
+                oidcIdTokenNominalClaims);
+        return new DefaultOidcUser(null, oidcIdToken);
+    }
+
+    private DefaultOidcUser getNominalWithoutFirstName(){
+        oidcIdTokenNominalClaims.remove("given_name");
+        OidcIdToken oidcIdToken = new OidcIdToken(
+                "eryery.eytryterfdgdfhVYGGbw-zerz-eztret-flLN-38387357-4373",
+                Instant.now(),
+                Instant.now().plusSeconds(30),
+                oidcIdTokenNominalClaims);
+        return new DefaultOidcUser(null, oidcIdToken);
+    }
+
+    private DefaultOidcUser getNominalWithoutLastName(){
+        oidcIdTokenNominalClaims.remove("family_name");
+        OidcIdToken oidcIdToken = new OidcIdToken(
+                "eryery.eytryterfdgdfhVYGGbw-zerz-eztret-flLN-38387357-4373",
+                Instant.now(),
+                Instant.now().plusSeconds(30),
+                oidcIdTokenNominalClaims);
+        return new DefaultOidcUser(null, oidcIdToken);
+    }
+
 }

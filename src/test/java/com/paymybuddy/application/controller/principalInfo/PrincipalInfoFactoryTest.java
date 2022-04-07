@@ -1,11 +1,15 @@
 package com.paymybuddy.application.controller.principalInfo;
 
+import com.paymybuddy.application.exception.PrincipalAuthenticationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
@@ -28,17 +32,18 @@ class PrincipalInfoFactoryTest {
 
 
     @Test
-    void getPrincipalInfoUserPasswordAuthentication() {
-
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(null,null);
+    void getPrincipalInfoUserPasswordAuthentication() throws PrincipalAuthenticationException {
+        //PREPARE
+        User user = new User("pierre.paul.oc@gmail.com","uiouio", AuthorityUtils.createAuthorityList("USER"));
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user,null, AuthorityUtils.createAuthorityList("USER"));
+        //ACT
         PrincipalInfo principalInfo = principalInfoFactory.getPrincipalInfo(token);
-
+        //CHECK
         assertInstanceOf(UsernamePasswordPrincipalInfo.class, principalInfo);
     }
 
     @Test
-    void getPrincipalOAuth2Authentication() {
-
+    void getPrincipalOAuth2Authentication() throws PrincipalAuthenticationException {
         OAuth2AuthenticationToken token = new OAuth2AuthenticationToken(getOAuth2User(),null,"id");
         PrincipalInfo principalInfo = principalInfoFactory.getPrincipalInfo(token);
 
@@ -46,12 +51,10 @@ class PrincipalInfoFactoryTest {
     }
 
     @Test
-    void getPrincipalUnknownAuthentication() {
+    void getPrincipalUnknownAuthentication() throws PrincipalAuthenticationException {
 
         PreAuthenticatedAuthenticationToken token = new PreAuthenticatedAuthenticationToken("key","Pierre Paul");
-        PrincipalInfo principalInfo = principalInfoFactory.getPrincipalInfo(token);
-
-        assertNull(principalInfo) ;
+        assertThrows(PrincipalAuthenticationException.class, () -> principalInfoFactory.getPrincipalInfo(token));
     }
 
     private DefaultOidcUser getOAuth2User(){

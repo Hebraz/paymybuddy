@@ -8,6 +8,9 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * User entity
+ */
 @Entity
 @Getter
 @Setter
@@ -56,7 +59,7 @@ public class User {
     /*Unidirectional mapping,
     deleting user shall delete all associated bank accounts*/
     @OneToMany(fetch = FetchType.LAZY,   cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private List<BankAccount> bankAccounts;
 
     public User(){

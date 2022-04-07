@@ -1,11 +1,20 @@
 package com.paymybuddy.application.repository;
 
 import com.paymybuddy.application.model.User;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-@Repository
-public interface UserRepository extends CrudRepository<User,Integer> {
+import java.util.Optional;
 
-    User findByEmail(String email);
+/**
+ * User repository
+ */
+@Repository
+public interface UserRepository extends JpaRepository<User,Integer> {
+    /**
+     * Get user by email
+     * @param email
+     * @return optional user
+     */
+    Optional<User> findByEmail(String email);
 }

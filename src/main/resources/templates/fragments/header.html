@@ -41,10 +41,13 @@
                 </div>
             </div>
             <div class="container-lg">
-                <div id="current_page_banner" class="bg-light d-flex justify-content-start">
-                    <div><span class="text-primary">Home</span></div>
-                    <div th:unless="${#request.requestURI.startsWith('/home') || #request.requestURI == '/'}"><span class="text-primary">/</span></div>
-                    <div th:unless="${#request.requestURI.startsWith('/home') || #request.requestURI == '/'}"><span class="text-secondary" th:with="currentPage = ${#request.requestURI.split('/')[1]}" th:text="${currentPage.substring(0,1).toUpperCase() + currentPage.substring(1).toLowerCase()}">Transfer</span></div>
+                    <div id="current_page_banner" class="bg-light d-flex justify-content-start">
+                        <div><span class="text-primary">Home</span></div>
+                        <div th:unless="${#request.requestURI.startsWith('/home') || #request.requestURI == '/'}"><span class="text-primary">/</span></div>
+                        <div th:unless="${#request.requestURI.startsWith('/home') || #request.requestURI == '/'}"><span class="text-secondary" th:with="currentPage = ${#request.requestURI.split('/')[1]}" th:text="${currentPage.substring(0,1).toUpperCase() + currentPage.substring(1).toLowerCase()}">Transfer</span></div>
+                    </div>
+                <div class="text-center">
+                    <span class="error_text" th:if="${param.error}"  th:text="${param.error}">error</span>
                 </div>
             </div>
         </header>
