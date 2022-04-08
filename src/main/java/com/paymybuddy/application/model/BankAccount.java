@@ -32,7 +32,7 @@ public class BankAccount {
     deleting a bank account is not authorized by DB when
     at least a bank transfer is recorded with this bank account*/
     @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE} , orphanRemoval = true)
-    @JoinColumn(name = "bank_account_id")
+    @JoinColumn(name = "bank_account_id", nullable = false)
     private List<BankTransfer> bankTransfers;
 
     public BankAccount(String description, String iban) {

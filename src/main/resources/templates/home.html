@@ -20,12 +20,16 @@
     <body>
         <div th:replace="fragments/header :: header_template"></div>
         <main>
-            <div>
-                <h1>Welcome home !</h1>
-                <p>Email: <span th:text="${user.email}">NA</span></p>
-                <p>First name: <span th:text="${user.firstName}">NA</span></p>
-                <p>Last name: <span th:text="${user.lastName}">NA</span></p>
-                <p>Balance: <span th:text="${user.balance}">NA</span></p>
+            <div class="container-lg">
+                <div class="row">
+                    <div class="col-12 col-md-10 offset-md-1 col-lg-8 offset-lg-2">
+                        <section class="main_section">
+                            <div>
+                                <h2>Welcome <span th:text="${user.firstName}"></span> !</h2>
+                            </div>
+                        </section>
+                    </div>
+                </div>
             </div>
         </main>
         <footer class="border-top">

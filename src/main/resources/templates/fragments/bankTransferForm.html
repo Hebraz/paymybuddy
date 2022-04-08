@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Pay my buddy</title>
+
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+                integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+
+        <!-- Font Awesome -->
+        <script src="https://kit.fontawesome.com/14273d579a.js" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="../../static/css/main.css">
+        <link rel="stylesheet" href="../../static/css/header.css">
+    </head>
+    <body>
+        <form th:fragment="bank_transfer_form_template"  th:action="@{/bankTransfer}" th:method="post" th:if="${user.bankAccounts.size > 0}"  th:object="${bankTransferDto}" class="row g-3 needs-validation m-0" novalidate>
+            <div class="col-12 col-md-4">
+                <div class="input-group ">
+                    <select th:field="*{transferType}" class="form-select"  select-size="3" id="fromBankTransfer">
+                        <option selected th:value="${T(com.paymybuddy.application.contant.BankTransferType).CREDIT_MYBUDDY_ACCOUNT}">Credit myBuddy account</option>
+                        <option th:value="${T(com.paymybuddy.application.contant.BankTransferType).DEBIT_MYBUDDY_ACCOUNT}">Debit myBuddy account</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class=" input-group">
+                    <label  for="toBankTransfer" class="input-group-text">Bank</label>
+                    <select  th:field="*{bankId}" class="form-select"  select-size="3" id="toBankTransfer">
+                        <option th:each="bankAccount: ${user.bankAccounts}"  th:value="${bankAccount.id}" th:text="${bankAccount.description}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="input-group flex-nowrap">
+                    <span class="input-group-text" id="addon-wrapping">€</span>
+                    <input  th:field="*{amount}" type="text" class="form-control" placeholder="Amount" aria-label="Username" aria-describedby="addon-wrapping">
+                </div>
+            </div>
+            <div class="col-6 col-md-12 text-end">
+                <button class="btn btn-primary" type="submit">Transfer</button>
+            </div>
+        </form>
+    </body>
+</html>

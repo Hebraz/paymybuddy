@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Pay my buddy</title>
+
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+                integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+
+        <!-- Font Awesome -->
+        <script src="https://kit.fontawesome.com/14273d579a.js" crossorigin="anonymous"></script>
+        <link rel="stylesheet" th:href="@{/css/main.css}"  href="../static/css/main.css">
+        <link rel="stylesheet" th:href="@{/css/header.css}"  href="../static/css/header.css">
+        <link rel="stylesheet" th:href="@{/css/profile.css}"  href="../static/css/profile.css">
+    </head>
+    <body>
+        <div th:replace="fragments/header :: header_template"></div>
+        <main>
+            <div class="container-lg">
+                <div class="row">
+                    <div class="col-12 col-md-10 offset-md-1 col-lg-8 offset-lg-2">
+                        <section class="main_section">
+                                <div>
+                                    <h2>Personal information</h2>
+                                    <hr/>
+                                    <div class="row">
+                                        <div class="col-4">
+                                            <p>Email:</p>
+                                            <p>First name:</p>
+                                            <p>Last name:</p>
+                                        </div>
+                                        <div class="col-8">
+                                            <p  th:text="${user.email}"></p>
+                                            <p  th:text="${user.firstName}"></p>
+                                            <p  th:text="${user.lastName}"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                        </section>
+                        <section  class="main_section">
+                                <h2>Balance</h2>
+                                    <hr/>
+                            <div class="row">
+                                <div class="col-4">
+                                    <p>Balance:</p>
+                                </div>
+                                <div class="col-8">
+                                    <p><span  th:text="${#numbers.formatDecimal(user.balance/100,1,2)}"></span> euros</p>
+                                </div>
+                                <div th:replace="fragments/bankTransferForm :: bank_transfer_form_template"></div>
+                            </div>
+
+                        </section>
+                        <section  class="main_section">
+                                <h2>Bank accounts</h2>
+                                <hr th:if="${user.bankAccounts.size == 0}"/>
+                                <div th:replace="fragments/bankAccountTable :: bank_account_table_template"></div>
+                                <div th:replace="fragments/bankAccountAddForm :: bank_account_add_form_template"></div>
+                        </section>
+                    </div>
+                </div>
+                </div>
+        </main>
+        <footer class="border-top">
+            <!-- Script js -->
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+                    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+                    crossorigin="anonymous"></script>
+        </footer>
+    </body>
+</html>

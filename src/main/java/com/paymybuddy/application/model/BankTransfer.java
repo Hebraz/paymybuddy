@@ -19,4 +19,13 @@ public class BankTransfer {
     private long amount; /*unit is cent*/
 
     private String description;
+
+
+    public BankTransfer(){}
+
+    public BankTransfer(Instant date, long amount, String description) {
+        this.date = date;
+        this.amount = amount;
+        this.description = description;
+    }
 }

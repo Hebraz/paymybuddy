@@ -1,6 +1,7 @@
 package com.paymybuddy.application.controller;
 
 import com.paymybuddy.application.exception.ConflictException;
+import com.paymybuddy.application.exception.ForbiddenOperationException;
 import com.paymybuddy.application.exception.NotFoundException;
 import com.paymybuddy.application.exception.PrincipalAuthenticationException;
 import lombok.extern.log4j.Log4j2;
@@ -25,6 +26,7 @@ public class ErrorController {
     private String defaultErrorMessage;
     @Value("${paymybuddy.principal-authentication-error-message}")
     private String principalAuthenticationErrorMessage;
+
     /**
      * Input validation error handler
      *
@@ -42,7 +44,7 @@ public class ErrorController {
                 .collect( Collectors.joining(". ") );
 
         log.error(errorMsg);
-        redirectAttributes.addAllAttributes(Map.of("error",errorMsg));
+        redirectAttributes.addFlashAttribute("error",errorMsg);
         return "redirect:"+ request.getHeader("Referer");
     }
 
@@ -58,28 +60,29 @@ public class ErrorController {
             PrincipalAuthenticationException ex, RedirectAttributes redirectAttributes) {
 
         log.error(ex.getMessage());
-        redirectAttributes.addAllAttributes(Map.of("error", principalAuthenticationErrorMessage));
+        redirectAttributes.addFlashAttribute("error", principalAuthenticationErrorMessage);
         return "redirect:login";
     }
 
     /**
-     *
+     * Application exceptions error handler
      *
      * @param ex Application exceptions
      * @param request To retrieve the referer page in order to display error on it
      * @param redirectAttributes to inject error parameter into referer page
      * @return name of the page to be displayed on client
      */
-    @ExceptionHandler({ConflictException.class, NotFoundException.class})
+    @ExceptionHandler({ConflictException.class, NotFoundException.class, ForbiddenOperationException.class})
     public String handleApplicationExceptions(
             Exception ex, HttpServletRequest request, RedirectAttributes redirectAttributes) {
 
         log.error(ex.getMessage());
-        redirectAttributes.addAllAttributes(Map.of("error", ex.getMessage()));
+        redirectAttributes.addFlashAttribute("error", ex.getMessage());
         return "redirect:"+ request.getHeader("Referer");
     }
 
     /**
+     * All other exceptions error handler
      *
      * @param ex all exceptions not handled by other handlers of this class
      * @param request To retrieve the referer page in order to display error on it
@@ -91,7 +94,7 @@ public class ErrorController {
             Exception ex, HttpServletRequest request, RedirectAttributes redirectAttributes) {
 
         log.error(ex.getMessage());
-        redirectAttributes.addAllAttributes(Map.of("error", defaultErrorMessage));
+        redirectAttributes.addFlashAttribute("error", defaultErrorMessage);
         return "redirect:"+ request.getHeader("Referer");
     }
 }

@@ -1,11 +1,19 @@
 package com.paymybuddy.application.service;
 
+import com.paymybuddy.application.contant.BankTransferType;
+import com.paymybuddy.application.dto.BankTransferDto;
+import com.paymybuddy.application.exception.ForbiddenOperationException;
 import com.paymybuddy.application.exception.NotFoundException;
 import com.paymybuddy.application.model.BankAccount;
+import com.paymybuddy.application.model.BankTransfer;
 import com.paymybuddy.application.model.User;
 import com.paymybuddy.application.repository.BankAccountRepository;
+import com.paymybuddy.application.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -52,4 +60,34 @@ public class BankAccountService {
     public void deleteBankAccount(int id){
         bankAccountRepository.deleteById(id);
     }
+
+
+    /**
+     * Adds a transfer to bank account
+     * @param bankTransferDto
+     * @throws NotFoundException when bank account does not exist in database
+     */
+    public void addTransfer(BankTransferDto bankTransferDto) throws NotFoundException {
+
+        Optional<BankAccount> bankAccountResult = bankAccountRepository.findById(bankTransferDto.getBankId());
+        if(bankAccountResult.isPresent())
+        {
+            BankAccount bankAccount = bankAccountResult.get();
+
+            long amountInCents = bankTransferDto.getAmount().multiply(BigDecimal.valueOf(100)).longValueExact(); //amount is validated at controller level. No overflow can occur here
+            BankTransferType transferType = bankTransferDto.getTransferType();
+            BankTransfer bankTransfer = new BankTransfer(Instant.now(), amountInCents, transferType.toString());
+
+            bankAccount.getBankTransfers().add(bankTransfer);
+            bankAccountRepository.save(bankAccount);
+        } else {
+            throw new NotFoundException("Operation failed.");
+        }
+
+    }
+
+
+
+
+
 }
