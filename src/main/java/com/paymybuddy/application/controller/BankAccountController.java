@@ -35,7 +35,7 @@ public class BankAccountController {
 
     /**
      * Creates a bank account
-     * @param request
+     * @param request the HttpServletRequest
      * @param bankAccount bank account to create
      * @return the page from which bank account creation has been made
      * @throws PrincipalAuthenticationException when principal cannot be identified
@@ -54,7 +54,7 @@ public class BankAccountController {
 
     /**
      * Deletes a bank account
-     * @param request
+     * @param request the HttpServletRequest
      * @param id id of the bank account
      * @return page from which bank account deletion has been made
      */
@@ -86,7 +86,7 @@ public class BankAccountController {
 
     /**
      * Updates a bank account
-     * @param request
+     * @param request the HttpServletRequest
      * @param bankAccount bank account to be updated
      * @return page from which bank account update has been made
      */

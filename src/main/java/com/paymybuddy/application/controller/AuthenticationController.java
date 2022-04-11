@@ -59,7 +59,7 @@ public class AuthenticationController {
         if ((principalInfo.authenticationType() == PrincipalInfo.AuthenticationType.OAUTH2) &&
                 (userResult.isEmpty())) {
             user = new User(principalInfo.getEmail(), null, principalInfo.getFirstName(), principalInfo.getLastName(), 0);
-            user = userService.saveUser(user);
+            user = userService.createUser(user);
         } else if (userResult.isPresent()) {
             user = userResult.get();
         } else {

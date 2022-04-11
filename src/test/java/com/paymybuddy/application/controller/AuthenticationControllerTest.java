@@ -1,27 +1,17 @@
 package com.paymybuddy.application.controller;
 
-import com.paymybuddy.application.controller.principalInfo.OAuth2PrincipalInfo;
 import com.paymybuddy.application.controller.principalInfo.PrincipalInfo;
 import com.paymybuddy.application.controller.principalInfo.PrincipalInfoFactory;
 import com.paymybuddy.application.exception.PrincipalAuthenticationException;
 import com.paymybuddy.application.model.User;
 import com.paymybuddy.application.service.UserService;
-import jdk.jfr.MetadataDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.ui.Model;
-import org.springframework.web.context.WebApplicationContext;
 
 import java.security.Principal;
 import java.util.Optional;
@@ -33,7 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @ExtendWith(MockitoExtension.class)
 class AuthenticationControllerTest {
 
@@ -80,14 +70,14 @@ class AuthenticationControllerTest {
         when(principalInfo.getFirstName()).thenReturn(firstName);
         when(principalInfo.getLastName()).thenReturn(lastName);
         when(userService.findByEmail(any())).thenReturn(Optional.empty());
-        when(userService.saveUser(any())).thenReturn(new User(email,"",firstName,lastName,0));
+        when(userService.updateUser(any())).thenReturn(new User(email,"",firstName,lastName,0));
 
         //ACT
         authenticationController.showHome(principal,model);
 
         //VERIFY
         verify(userService, times(1)).findByEmail(email);
-        verify(userService, times(1)).saveUser(userCaptor.capture());
+        verify(userService, times(1)).updateUser(userCaptor.capture());
         assertThat(userCaptor.getValue())
                 .extracting(User::getEmail,
                         User::getFirstName,
@@ -121,7 +111,7 @@ class AuthenticationControllerTest {
 
         //VERIFY
         verify(userService, times(1)).findByEmail(email);
-        verify(userService, never()).saveUser(userCaptor.capture());
+        verify(userService, never()).updateUser(userCaptor.capture());
         verify(model, times(1)).addAttribute(any(), userCaptor.capture());
         assertThat(userCaptor.getValue())
                 .extracting(User::getEmail,
@@ -149,7 +139,7 @@ class AuthenticationControllerTest {
 
         //VERIFY
         verify(userService, times(1)).findByEmail(email);
-        verify(userService, never()).saveUser(userCaptor.capture());
+        verify(userService, never()).updateUser(userCaptor.capture());
         verify(model, times(1)).addAttribute(any(), userCaptor.capture());
         assertThat(userCaptor.getValue())
                 .extracting(User::getEmail,

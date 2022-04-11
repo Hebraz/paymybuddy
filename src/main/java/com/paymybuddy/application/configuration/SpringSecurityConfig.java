@@ -29,13 +29,14 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
                 .dataSource(dataSource)
                 .passwordEncoder(passwordEncoder())
                 .usersByUsernameQuery("SELECT email,password,enabled FROM user WHERE email = ?")
-                .authoritiesByUsernameQuery("SELECT email,authority FROM authorities where email = ?");
+                .authoritiesByUsernameQuery("SELECT email, authority FROM user INNER JOIN authorities " +
+                        " ON user.authority_id = authorities.id where email = ?");
     }
 
     @Override
     public void configure(HttpSecurity http) throws Exception{
         http.authorizeRequests()
-                .antMatchers("/login*", "/css/**").permitAll()
+                .antMatchers("/login*", "/signUp*", "/css/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
             .formLogin()

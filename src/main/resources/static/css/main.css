@@ -1,6 +1,9 @@
 /**{
     border: 1px black solid;
 }*/
+main{
+    min-height:600px;
+}
 
 #paymybuddy_title{
     background: rgb(96,185,90);

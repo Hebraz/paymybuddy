@@ -5,6 +5,8 @@ import lombok.Setter;
 import lombok.experimental.StandardException;
 
 import javax.persistence.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,19 +19,23 @@ import java.util.List;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+    private Integer id;
 
     @Column(unique=true)
+    @Email
+    @Size(max=100, message = "Email must be at most 100 characters in length")
     private String email;
-
+    @Size(max=100, message = "Password must be at most 100 characters in length")
     private String password;
 
     private boolean enabled;
 
     @Column(name = "first_name")
+    @Size(max=50, message = "First name must be at most 50 characters in length")
     private String firstName;
 
     @Column(name = "last_name")
+    @Size(max=50, message = "Last name must be at most 50 characters in length")
     private String lastName;
 
     private long balance; /*unit is cent*/
@@ -61,6 +67,12 @@ public class User {
     @OneToMany(fetch = FetchType.LAZY,   cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_id", nullable = false)
     private List<BankAccount> bankAccounts;
+
+    /*Unidirectional mapping,
+     deleting user shall not delete associated authority*/
+    @ManyToOne(cascade= {CascadeType.PERSIST, CascadeType.REFRESH})
+    @JoinColumn(name="authority_id", referencedColumnName = "id")
+    private Authority authority;
 
     public User(){
         connections = new ArrayList<>();

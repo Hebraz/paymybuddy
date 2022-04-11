@@ -2,17 +2,23 @@ package com.paymybuddy.application.service;
 
 import com.paymybuddy.application.contant.BankTransferType;
 import com.paymybuddy.application.dto.BankTransferDto;
+import com.paymybuddy.application.dto.SignUpDto;
 import com.paymybuddy.application.exception.ForbiddenOperationException;
 import com.paymybuddy.application.exception.NotFoundException;
 import com.paymybuddy.application.exception.PrincipalAuthenticationException;
+import com.paymybuddy.application.model.Authority;
 import com.paymybuddy.application.model.BankAccount;
 import com.paymybuddy.application.model.User;
+import com.paymybuddy.application.repository.AuthorityRepository;
 import com.paymybuddy.application.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -23,20 +29,76 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final BankAccountService bankAccountService;
+    private final AuthorityRepository authorityRepository;
+
+    @Value("${paymybuddy.user_role}")
+    private String USER_ROLE;
 
     @Autowired
-    public UserService(UserRepository userRepository, BankAccountService bankAccountService) {
+    public UserService(UserRepository userRepository, BankAccountService bankAccountService, AuthorityRepository authorityRepository) {
         this.userRepository = userRepository;
         this.bankAccountService = bankAccountService;
+        this.authorityRepository = authorityRepository;
     }
 
     /**
-     * Saves user into database. Can be use to create (null id) or update (not null id) an user
-     * @param user user instance to save
+     * Updates user into database. Cannot be use to create a user (null id)
+     * @param user user instance to update
      * @return the saved user.
+     * @throws IllegalArgumentException when trying to update a non-existing user
      */
-    public User saveUser(User user){
-        return userRepository.save(user);
+    public User updateUser(User user){
+        if(Objects.nonNull(user.getId())) {
+            return userRepository.save(user);
+        } else {
+            throw new IllegalArgumentException("Cannot update non existing user : " + user.getEmail());
+        }
+    }
+
+    /**
+     * Creates user into database. Cannot be use to update a user (non null id)
+     * @param user user instance to create
+     * @return the saved user.
+     * @throws IllegalArgumentException when trying to create an existing user
+     */
+    public User createUser(User user){
+        if(Objects.isNull(user.getId())) {
+            //create Authority
+            Optional<Authority> authorityResult = authorityRepository.findByAuthority(USER_ROLE);
+            user.setAuthority(authorityResult.get());
+            return userRepository.save(user);
+        } else {
+            throw new IllegalArgumentException("Cannot create existing user : " + user.getEmail());
+        }
+    }
+
+    /**
+     * Creates User Account
+     */
+    public User createUserAccount(SignUpDto signUpDto) throws ForbiddenOperationException {
+
+        String email = signUpDto.getEmail();
+        String emailConfirmation = signUpDto.getEmailConfirmation();
+        String firstName = signUpDto.getFirstName();
+        String lastName = signUpDto.getLastName();
+        String password = signUpDto.getPassword();
+        String encodedPassword = new BCryptPasswordEncoder().encode(password);
+
+        //Check email
+        if(email.equals(emailConfirmation)) {
+            //Check that a user is not already registered with the same email
+            // If it is the case, display an error, else create account
+            Optional<User> userInDb = this.findByEmail(email);
+            if (userInDb.isEmpty()) {
+                User user = new User(email, encodedPassword, firstName, lastName, 0);
+                return this.createUser(user);
+            } else {
+                throw new ForbiddenOperationException("An account with this email already exists");
+            }
+        }
+        else {
+            throw new ForbiddenOperationException("Emails are different");
+        }
     }
 
     /**
@@ -81,7 +143,7 @@ public class UserService {
     /**
      * Executes a bank transfer: update user balance and register the transfer
      * @param userEmail email of user that executes the bank transfer
-     * @param bankTransferDto
+     * @param bankTransferDto a BankTransfer object
      * @throws ForbiddenOperationException when transfer would lead to negative balance or overflow
      * @throws NotFoundException when bank account does not exist in database
      * @throws PrincipalAuthenticationException when principal user is not identified
@@ -107,7 +169,7 @@ public class UserService {
     /**
      * Update user balance with amount in cents.
      *
-     * @param user
+     * @param user a User instance
      * @param amountInCents positive integer in case of credit, negative integer in case of debit
      * @throws ForbiddenOperationException when overflow or negative balance is detected
      */
@@ -126,7 +188,7 @@ public class UserService {
     }
 
     private String amountInCentToString(long amountInCents){
-        double amount = amountInCents/100;
+        BigDecimal amount = BigDecimal.valueOf(amountInCents).divide(BigDecimal.valueOf(100));
         return String.format(Locale.FRANCE, "%,.2f", amount);
     }
 }

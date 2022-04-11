@@ -9,6 +9,7 @@ import java.time.Instant;
 @Entity
 @Getter
 @Setter
+@Table(name = "bank_transfer")
 public class BankTransfer {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

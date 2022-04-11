@@ -7,7 +7,7 @@ import com.paymybuddy.application.exception.NotFoundException;
 import com.paymybuddy.application.exception.PrincipalAuthenticationException;
 import com.paymybuddy.application.model.BankAccount;
 import com.paymybuddy.application.model.User;
-import com.paymybuddy.application.repository.BankAccountRepository;
+import com.paymybuddy.application.repository.AuthorityRepository;
 import com.paymybuddy.application.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,11 +15,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.swing.text.html.Option;
 import java.math.BigDecimal;
 import java.util.Optional;
 
@@ -34,6 +32,8 @@ class UserServiceTest {
     UserRepository userRepository;
     @Mock
     BankAccountService bankAccountService;
+    @Mock
+    AuthorityRepository authorityRepository;
 
     private UserService userService;
 
@@ -41,7 +41,7 @@ class UserServiceTest {
 
     @BeforeEach
     void initializeTest(){
-        userService = new UserService(userRepository, bankAccountService);
+        userService = new UserService(userRepository, bankAccountService, authorityRepository);
         nominalUser =  new User("pierre.paul.oc@gmail.com","pwd", "Pierre","Paul",0);
     }
 
@@ -51,7 +51,7 @@ class UserServiceTest {
         when(userRepository.save(any(User.class))).thenReturn(nominalUser);
         //ACT
         User userToSave = new User();
-        User savedUser = userService.saveUser(userToSave);
+        User savedUser = userService.updateUser(userToSave);
 
         //CHECK
         verify(userRepository, times(1)).save(userToSave);
