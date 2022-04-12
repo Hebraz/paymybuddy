@@ -17,5 +17,5 @@ public interface AuthorityRepository extends JpaRepository<Authority, Integer> {
      * @param authority authority name
      * @return an optional of authority
      */
-    public Optional<Authority> findByAuthority(String authority);
+    Optional<Authority> findByAuthority(String authority);
 }

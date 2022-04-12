@@ -70,14 +70,14 @@ class AuthenticationControllerTest {
         when(principalInfo.getFirstName()).thenReturn(firstName);
         when(principalInfo.getLastName()).thenReturn(lastName);
         when(userService.findByEmail(any())).thenReturn(Optional.empty());
-        when(userService.updateUser(any())).thenReturn(new User(email,"",firstName,lastName,0));
+        when(userService.createUser(any())).thenReturn(new User(email,"",firstName,lastName,0));
 
         //ACT
         authenticationController.showHome(principal,model);
 
         //VERIFY
         verify(userService, times(1)).findByEmail(email);
-        verify(userService, times(1)).updateUser(userCaptor.capture());
+        verify(userService, times(1)).createUser(userCaptor.capture());
         assertThat(userCaptor.getValue())
                 .extracting(User::getEmail,
                         User::getFirstName,

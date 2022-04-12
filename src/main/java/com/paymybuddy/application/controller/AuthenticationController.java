@@ -41,8 +41,8 @@ public class AuthenticationController {
     /**
      * Shows home page after authentication.
      * If user has been authenticated by oAuth2 for the first time, then it is registered into application database
-     * @param principal
-     * @param model
+     * @param principal user principal
+     * @param model model
      * @return home page
      * @throws PrincipalAuthenticationException when principal is not authenticated or email of principal cannot be retrieved
      */

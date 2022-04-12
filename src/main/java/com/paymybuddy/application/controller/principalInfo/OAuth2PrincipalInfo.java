@@ -13,9 +13,9 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 @Getter
 public class OAuth2PrincipalInfo implements PrincipalInfo {
 
-    private String email;
-    private String firstName;
-    private String lastName;
+    private final String email;
+    private final String firstName;
+    private final String lastName;
 
     public OAuth2PrincipalInfo(OAuth2AuthenticationToken authToken) throws PrincipalAuthenticationException {
         if(authToken.isAuthenticated()) {

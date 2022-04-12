@@ -9,7 +9,8 @@ import java.time.Instant;
 @Entity
 @Getter
 @Setter
-public class Transaction {
+@Table(name = "transaction")
+public class ConnectionTransfer {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id_transaction")
@@ -39,8 +40,8 @@ public class Transaction {
     @JoinColumn(name = "credit_id")
     private User credit;
 
-    public Transaction(){}
-    public Transaction( Instant date, long totalAmount, String description, long feeAmount) {
+    public ConnectionTransfer(){}
+    public ConnectionTransfer(Instant date, long totalAmount, String description, long feeAmount) {
         this.date = date;
         this.totalAmount = totalAmount;
         this.description = description;

@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface BankAccountRepository extends JpaRepository<BankAccount, Integer> {
     /**
      * Get bank account by IBAN
-     * @param iban
+     * @param iban bank account iban
      * @return optional bank account
      */
     Optional<BankAccount> findByIban(String iban);

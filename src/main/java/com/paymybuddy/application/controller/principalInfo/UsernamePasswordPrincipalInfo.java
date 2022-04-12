@@ -10,14 +10,10 @@ import org.springframework.security.core.userdetails.User;
 @Getter
 public class UsernamePasswordPrincipalInfo implements PrincipalInfo {
 
-    private String email;
-    private String firstName;
-    private String lastName;
+    private final String email;
 
     public UsernamePasswordPrincipalInfo(Authentication authToken) throws PrincipalAuthenticationException {
         this.email = extractEmailFromToken(authToken);
-        this.firstName = null;
-        this.lastName = null;
     }
 
     @Override
@@ -28,7 +24,7 @@ public class UsernamePasswordPrincipalInfo implements PrincipalInfo {
     /**
      * Extract the email of the principal token
      * @return email, null if principal is not authenticated
-     * @throws com.paymybuddy.application.exception.PrincipalAuthenticationException when email cannot be extractrd from principal
+     * @throws com.paymybuddy.application.exception.PrincipalAuthenticationException when email cannot be extracted from principal
      */
     private String extractEmailFromToken(Authentication authToken) throws PrincipalAuthenticationException {
 
@@ -41,5 +37,12 @@ public class UsernamePasswordPrincipalInfo implements PrincipalInfo {
             }
         }
         throw new PrincipalAuthenticationException("Failed to extract email from token");
+    }
+
+    public String getFirstName(){
+        return null;
+    }
+    public String getLastName(){
+        return null;
     }
 }

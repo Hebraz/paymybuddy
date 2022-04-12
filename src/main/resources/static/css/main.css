@@ -31,6 +31,11 @@ main{
 .error_text{
     color: red;
 }
+
+.success_text{
+    color: green;
+}
+
 .main_section{
     margin-bottom:3rem;
 }

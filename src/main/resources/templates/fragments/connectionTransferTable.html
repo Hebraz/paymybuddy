@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Pay my buddy</title>
+
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+                integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+
+        <!-- Font Awesome -->
+        <script src="https://kit.fontawesome.com/14273d579a.js" crossorigin="anonymous"></script>
+        <link rel="stylesheet" th:href="@{/css/main.css}"  href="../static/css/main.css">
+        <link rel="stylesheet" th:href="@{/css/header.css}"  href="../static/css/header.css">
+    </head>
+    <body>
+        <main>
+            <div th:fragment="connection_transfer_table_template">
+                <table class="table table-striped text-center table-borderless  border border-secondary border-2 mb-0">
+                    <thead class="bg-success text-white  fw-light">
+                    <tr>
+                        <th scope="col">Connections</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Amount</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="transfer : ${transferPage.content}">
+                        <td th:if="${transfer.credit.email == user.email}" th:text="${transfer.payer.firstName} + ' ' + ${transfer.payer.lastName}" />
+                        <td th:unless="${transfer.credit.email == user.email}" th:text="${transfer.credit.firstName} + ' ' + ${transfer.credit.lastName}" />
+                        <td th:text="${transfer.description}" />
+                        <td  th:if="${transfer.credit.email == user.email}" th:text="${#numbers.formatDecimal(transfer.totalAmount/100.0,1,2)}" />
+                        <td  th:unless="${transfer.credit.email == user.email}" th:text="${#numbers.formatDecimal(-transfer.totalAmount/100.0,1,2)}" />
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <div  th:if="${transferPage.totalPages > 1}" class="btn-group btn-group-toggle" data-toggle="buttons">
+                            <a th:each="pageNumber : ${pageNumbers}"
+                               class="btn btn-outline-primary"
+                               th:classappend="${pageNumber==transferPage.number + 1} ? active"
+                               th:href="@{/transfer(size=${transferPage.size}, page=${pageNumber})}"
+                               th:text=${pageNumber}></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <footer class="border-top">
+            <!-- Script js -->
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+                    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+                    crossorigin="anonymous"></script>
+        </footer>
+    </body>
+</html>

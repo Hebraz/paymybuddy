@@ -1,11 +1,16 @@
 package com.paymybuddy.application.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.*;
 
 /**
  * Authority entity
  */
 @Entity
+@Getter
+@Setter
 @Table(name = "authorities")
 public class Authority {
     @Id

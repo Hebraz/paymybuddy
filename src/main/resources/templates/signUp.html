@@ -32,21 +32,21 @@
                     </div>
                     <div class="input-group">
                         <span class="input-group-text bi bi-envelope"></span>
-                        <input th:field="*{email}"  type="email" class="form-control" placeholder="Email">
+                        <input th:field="*{email}"  type="email" class="form-control" placeholder="Email" required>
                     </div>
                     <div class="input-group">
                         <span class="input-group-text bi bi-envelope"></span>
-                        <input th:field="*{emailConfirmation}" type="email"  class="form-control" placeholder="Email confirmation">
+                        <input th:field="*{emailConfirmation}" type="email"  class="form-control" placeholder="Email confirmation" required>
                     </div>
                     <div class="input-group">
-                        <input  th:field="*{firstName}"  type="text" class="form-control"  placeholder="First Name...">
+                        <input  th:field="*{firstName}"  type="text" class="form-control"  placeholder="First Name..." required>
                     </div>
                     <div class="input-group">
-                        <input  th:field="*{LastName}"  type="text" class="form-control"  placeholder="Last Name...">
+                        <input  th:field="*{LastName}"  type="text" class="form-control"  placeholder="Last Name..." required>
                     </div>
                     <div class="input-group">
                         <span class="input-group-text bi bi-file-lock"></span>
-                        <input th:field="*{password}"  type="password" class="form-control" placeholder="Password">
+                        <input th:field="*{password}"  type="password" class="form-control" placeholder="Password" required>
                     </div>
                     <div class="">
                         <button type="submit" class="btn btn-primary"  id="submit_button">Sign up</button>

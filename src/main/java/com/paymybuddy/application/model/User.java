@@ -2,7 +2,6 @@ package com.paymybuddy.application.model;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.StandardException;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
@@ -44,13 +43,12 @@ public class User {
     deleting user shall not delete the associated transactions as payer,
     as these transactions may be consulted by the credit user*/
     @OneToMany( mappedBy = "payer", cascade = {CascadeType.PERSIST, CascadeType.MERGE })
-    private List<Transaction> transactionsAsPayer;
+    private List<ConnectionTransfer> transactionsAsPayer;
 
     /*Bidirectional mapping,
-    deleting user shall not delete the associated transactions as credit,
-    as these transactions may be consulted by the payer user*/
-    @OneToMany( mappedBy = "credit", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-    private List<Transaction> transactionsAsCredit;
+    Do not persist nor update transaction => done by payer side*/
+    @OneToMany( mappedBy = "credit")
+    private List<ConnectionTransfer> transactionsAsCredit;
 
     /*Unidirectional mapping,
     deleting user shall not delete connections*/
@@ -90,14 +88,14 @@ public class User {
         this.balance = balance;
     }
 
-    public void addTransactionAsPayer(Transaction transaction){
-        transaction.setPayer(this);
-        transactionsAsPayer.add(transaction);
+    public void addTransactionAsPayer(ConnectionTransfer connectionTransfer){
+        connectionTransfer.setPayer(this);
+        transactionsAsPayer.add(connectionTransfer);
     }
 
-    public void addTransactionAsCredit(Transaction transaction){
-        transaction.setCredit(this);
-        transactionsAsCredit.add(transaction);
+    public void addTransactionAsCredit(ConnectionTransfer connectionTransfer){
+        connectionTransfer.setCredit(this);
+        transactionsAsCredit.add(connectionTransfer);
     }
 }
 

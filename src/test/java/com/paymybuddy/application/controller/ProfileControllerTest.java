@@ -14,15 +14,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
-
 import javax.servlet.http.HttpServletRequest;
-
 import java.security.Principal;
-
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -32,8 +27,6 @@ class ProfileControllerTest {
     @Mock
     private UserService userService;
     @Mock
-    private BankAccountService bankAccountService;
-    @Mock
     private PrincipalInfoFactory principalInfoFactory;
     @Mock
     PrincipalInfo principalInfo;
@@ -41,14 +34,12 @@ class ProfileControllerTest {
     Principal principal;
     @Mock
     Model model;
-    @Mock
-    HttpServletRequest httpServletRequest;
 
     private ProfileController profileController;
 
     @BeforeEach
     void initializeTest(){
-        profileController = new ProfileController(principalInfoFactory, userService,bankAccountService);
+        profileController = new ProfileController(principalInfoFactory, userService);
     }
 
     @Test

@@ -3,8 +3,6 @@ package com.paymybuddy.application.dto;
 import com.paymybuddy.application.contant.BankTransferType;
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.swing.tree.TreeNode;
 import javax.validation.constraints.DecimalMax;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Digits;
@@ -29,5 +27,5 @@ public class BankTransferDto {
         this.amount = amount;
     }
 
-    public BankTransferDto(){};
+    public BankTransferDto(){}
 }

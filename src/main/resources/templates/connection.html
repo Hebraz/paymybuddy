@@ -24,43 +24,17 @@
             <div class="container-lg">
                 <div class="row">
                     <div class="col-12 col-md-10 offset-md-1 col-lg-8 offset-lg-2">
-                        <section class="main_section">
-                                <div>
-                                    <h2>Personal information</h2>
-                                    <hr/>
-                                    <div class="row">
-                                        <div class="col-4">
-                                            <p>Email:</p>
-                                            <p>First name:</p>
-                                            <p>Last name:</p>
-                                        </div>
-                                        <div class="col-8">
-                                            <p  th:text="${user.email}"></p>
-                                            <p  th:text="${user.firstName}"></p>
-                                            <p  th:text="${user.lastName}"></p>
-                                        </div>
-                                    </div>
-                                </div>
-                        </section>
                         <section  class="main_section">
-                                <h2>Balance</h2>
-                                    <hr/>
-                            <div class="row">
-                                <div class="col-4">
-                                    <p>Balance:</p>
+                                <h2>Connection</h2>
+                            <hr />
+                            <form th:method="post" th:action="@{/connection}" th:object="${connectionDto}" class="row g-3" novalidate>
+                                <div class="col-10">
+                                    <input th:field="*{email}" type="email" class="form-control" placeholder="Connection email"  required>
                                 </div>
-                                <div class="col-8">
-                                    <p><span  th:text="${#numbers.formatDecimal(user.balance/100.0,1,2)}"></span> euros</p>
+                                <div class="col-2 text-end ">
+                                    <button class="btn btn-primary px-5" type="submit">Add</button>
                                 </div>
-                                <div th:replace="fragments/bankTransferForm :: bank_transfer_form_template"></div>
-                            </div>
-
-                        </section>
-                        <section  class="main_section">
-                                <h2>Bank accounts</h2>
-                                <hr th:if="${user.bankAccounts.size == 0}"/>
-                                <div th:replace="fragments/bankAccountTable :: bank_account_table_template"></div>
-                                <div th:replace="fragments/bankAccountAddForm :: bank_account_add_form_template"></div>
+                            </form>
                         </section>
                     </div>
                 </div>

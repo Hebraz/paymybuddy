@@ -2,7 +2,6 @@ package com.paymybuddy.application.controller;
 
 import com.paymybuddy.application.dto.SignUpDto;
 import com.paymybuddy.application.exception.ForbiddenOperationException;
-import com.paymybuddy.application.model.User;
 import com.paymybuddy.application.service.UserService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +10,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -32,7 +30,7 @@ public class SignUpController {
 
     /**
      * Show sign up page
-     * @param model
+     * @param model view model
      * @return sign up page
      */
     @GetMapping("/signUp")
@@ -43,8 +41,8 @@ public class SignUpController {
 
     /**
      * Creates user account
-     * @param request
-     * @param model
+     * @param request servlet request
+     * @param model view model
      * @param signUpDto the signup information needed to create account
      * @return home if account creation succeed
      * @throws ForbiddenOperationException when user with given email already exist, or
@@ -61,7 +59,7 @@ public class SignUpController {
             request.login(signUpDto.getEmail(), signUpDto.getPassword());
         } catch (ServletException e) {
             model.addAttribute("error","Authentication failed");
-            log.error("Error while login ", e.getMessage());
+            log.error("Error while login: " + e.getMessage());
             return "redirect:login";
         }
         return "redirect:home";

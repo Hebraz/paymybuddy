@@ -2,12 +2,15 @@ package com.paymybuddy.application.service;
 
 import com.paymybuddy.application.contant.BankTransferType;
 import com.paymybuddy.application.dto.BankTransferDto;
+import com.paymybuddy.application.dto.ConnectionDto;
+import com.paymybuddy.application.dto.ConnectionTranferDto;
 import com.paymybuddy.application.dto.SignUpDto;
 import com.paymybuddy.application.exception.ForbiddenOperationException;
 import com.paymybuddy.application.exception.NotFoundException;
 import com.paymybuddy.application.exception.PrincipalAuthenticationException;
 import com.paymybuddy.application.model.Authority;
 import com.paymybuddy.application.model.BankAccount;
+import com.paymybuddy.application.model.ConnectionTransfer;
 import com.paymybuddy.application.model.User;
 import com.paymybuddy.application.repository.AuthorityRepository;
 import com.paymybuddy.application.repository.UserRepository;
@@ -17,6 +20,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Instant;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
@@ -33,6 +38,9 @@ public class UserService {
 
     @Value("${paymybuddy.user_role}")
     private String USER_ROLE;
+
+    @Value("${paymybuddy.feerate}")
+    private BigDecimal FEE_RATE;
 
     @Autowired
     public UserService(UserRepository userRepository, BankAccountService bankAccountService, AuthorityRepository authorityRepository) {
@@ -56,7 +64,7 @@ public class UserService {
     }
 
     /**
-     * Creates user into database. Cannot be use to update a user (non null id)
+     * Creates user into database. Cannot be used to update a user (non-null id)
      * @param user user instance to create
      * @return the saved user.
      * @throws IllegalArgumentException when trying to create an existing user
@@ -160,6 +168,7 @@ public class UserService {
         }
         /*update user balance*/
         updateUserBalance(user,amountInCents);
+        userRepository.save(user);
 
         /*add bankTransfer*/
         bankAccountService.addTransfer(bankTransferDto);
@@ -167,7 +176,7 @@ public class UserService {
 
 
     /**
-     * Update user balance with amount in cents.
+     * Update user balance with amount in cents. User is not persisted by this method.
      *
      * @param user a User instance
      * @param amountInCents positive integer in case of credit, negative integer in case of debit
@@ -184,11 +193,81 @@ public class UserService {
         }
         balance += amountInCents;
         user.setBalance(balance);
-        userRepository.save(user);
     }
 
+    /**
+     * Format amount in cents as string
+     * @param amountInCents amount in cents
+     * @return formatted amount
+     */
     private String amountInCentToString(long amountInCents){
-        BigDecimal amount = BigDecimal.valueOf(amountInCents).divide(BigDecimal.valueOf(100));
+        BigDecimal amount = BigDecimal.valueOf(amountInCents).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
         return String.format(Locale.FRANCE, "%,.2f", amount);
+    }
+
+    /**
+     * Adds a connection to user
+     * @param principalEmail email of active user.
+     * @param connectionDto email of connection to add.
+     */
+    public void addConnection(String principalEmail, ConnectionDto connectionDto) throws PrincipalAuthenticationException, NotFoundException {
+        User user = getPrincipalByEmail(principalEmail);
+        Optional<User> connectionResult = userRepository.findByEmail(connectionDto.getEmail());
+        if(connectionResult.isPresent()){
+            User connection = connectionResult.get();
+            user.getConnections().add(connection);
+            userRepository.save(user);
+        } else {
+            throw new NotFoundException("No connection found with email " + connectionDto.getEmail());
+        }
+    }
+
+    /**
+     * Executes a bank transfer: update user balance and register the transfer
+     * @param userEmail email of user that executes the bank transfer
+     * @param connectionTransferDto a ConnectionTransferDto object
+     * @throws ForbiddenOperationException when transfer would lead to negative balance or overflow
+     * @throws NotFoundException when bank account does not exist in database
+     * @throws PrincipalAuthenticationException when principal user is not identified
+     */
+    @Transactional
+    public void executeConnectionTransfer(String userEmail, ConnectionTranferDto connectionTransferDto) throws ForbiddenOperationException, NotFoundException, PrincipalAuthenticationException {
+        String connectionEmail = connectionTransferDto.getConnectionEmail();
+        User user = getPrincipalByEmail(userEmail);
+
+        Optional<User> connectionUserResult = findByEmail(connectionEmail);
+        if(connectionUserResult.isPresent()){
+            User connectionUser = connectionUserResult.get();
+
+            ConnectionTransfer transfer = connectionTransferFromDto(connectionTransferDto);
+
+            updateUserBalance(user,-transfer.getTotalAmount());
+            updateUserBalance(connectionUser,transfer.getTotalAmount());
+
+            user.addTransactionAsPayer(transfer);
+            connectionUser.addTransactionAsCredit(transfer);
+
+            userRepository.save(user);
+            userRepository.save(connectionUser);
+        } else {
+            throw new NotFoundException(connectionEmail + " does not exist");
+        }
+    }
+
+     /**
+     * Create a ConnectionTransfer object from a ConnectionTransferDto
+     * @param connectionTransferDto a ConnectionTransferDto instance
+     * @return the corresponding ConnectionTransfer
+     */
+    private ConnectionTransfer connectionTransferFromDto(ConnectionTranferDto connectionTransferDto){
+        long amountInCents = connectionTransferDto.getAmount()
+                .multiply(BigDecimal.valueOf(100))
+                .longValue(); //amount is validated at controller level. No overflow can occur here
+
+        long feeRate = BigDecimal.valueOf(amountInCents)
+                .multiply(FEE_RATE)
+                .longValue();
+
+        return new ConnectionTransfer(Instant.now(),amountInCents,connectionTransferDto.getDescription(),feeRate);
     }
 }

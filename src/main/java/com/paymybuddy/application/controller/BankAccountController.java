@@ -69,7 +69,7 @@ public class BankAccountController {
 
     /**
      * Shows bank account edition form
-     * @param model
+     * @param model view model
      * @param id id of the bank account to edit
      * @return bank account edition form
      * @throws NotFoundException when no bank account exists with provided id
