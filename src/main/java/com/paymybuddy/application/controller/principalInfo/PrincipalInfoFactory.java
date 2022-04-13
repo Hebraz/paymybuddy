@@ -11,22 +11,12 @@ import java.security.Principal;
  * according to principal Authentication Token type
  * */
 @Component
-public class PrincipalInfoFactory {
+public interface PrincipalInfoFactory {
     /**
      * Get an PrincipalInfo implementation instance according to authentication type
      *
      * @return a PrincipalInfo object
      * @throws PrincipalAuthenticationException if authentication token is not supported
      * */
-    public PrincipalInfo getPrincipalInfo(Principal principal) throws PrincipalAuthenticationException {
-        if(principal instanceof UsernamePasswordAuthenticationToken){
-            return new UsernamePasswordPrincipalInfo((UsernamePasswordAuthenticationToken)principal);
-        }
-        else if(principal instanceof OAuth2AuthenticationToken){
-            return new OAuth2PrincipalInfo((OAuth2AuthenticationToken)principal);
-        }
-        else{
-            throw new PrincipalAuthenticationException("Authentication token not supported: " + principal.getClass().getSimpleName());
-        }
-    }
+     PrincipalInfo getPrincipalInfo(Principal principal) throws PrincipalAuthenticationException;
 }

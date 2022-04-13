@@ -56,6 +56,6 @@ public class ConnectionController {
         userService.addConnection(principalInfo.getEmail(), connectionDto);
 
         redirectAttributes.addFlashAttribute("success", connectionDto.getEmail() + " has been added.");
-        return "redirect:transfer";
+        return "redirect:/transfer";
     }
 }

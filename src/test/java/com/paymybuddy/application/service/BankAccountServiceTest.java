@@ -31,7 +31,7 @@ class BankAccountServiceTest {
     private BankAccountService bankAccountService;
     @BeforeEach
     void initializeTest(){
-        bankAccountService = new BankAccountService(bankAccountRepository);
+        bankAccountService = new BankAccountServiceImpl(bankAccountRepository);
     }
     @Test
     void getByIdEmpty() {

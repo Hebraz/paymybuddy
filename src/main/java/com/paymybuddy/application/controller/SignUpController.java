@@ -60,8 +60,8 @@ public class SignUpController {
         } catch (ServletException e) {
             model.addAttribute("error","Authentication failed");
             log.error("Error while login: " + e.getMessage());
-            return "redirect:login";
+            return "redirect:/login";
         }
-        return "redirect:home";
+        return "redirect:/home";
     }
 }

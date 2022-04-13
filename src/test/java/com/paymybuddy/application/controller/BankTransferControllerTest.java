@@ -43,7 +43,6 @@ class BankTransferControllerTest {
     @Test
     void executeBankTransfer() throws PrincipalAuthenticationException, NotFoundException, ForbiddenOperationException {
         //prepare
-
         when(principalInfo.getEmail()).thenReturn("pierre.paul.oc@gmail.com");
         when(principalInfoFactory.getPrincipalInfo(any())).thenReturn(principalInfo);
         BankTransferDto bankTransferDto = new BankTransferDto();

@@ -27,7 +27,7 @@ class PrincipalInfoFactoryTest {
 
     @BeforeEach
     void initializeTest(){
-        principalInfoFactory = new PrincipalInfoFactory();
+        principalInfoFactory = new PrincipalInfoFactoryImpl();
     }
 
 
