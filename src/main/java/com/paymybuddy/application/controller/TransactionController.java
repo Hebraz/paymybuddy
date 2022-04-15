@@ -2,11 +2,11 @@ package com.paymybuddy.application.controller;
 
 import com.paymybuddy.application.controller.principalInfo.PrincipalInfo;
 import com.paymybuddy.application.controller.principalInfo.PrincipalInfoFactory;
-import com.paymybuddy.application.dto.ConnectionTranferDto;
+import com.paymybuddy.application.dto.TransactionDto;
 import com.paymybuddy.application.exception.ForbiddenOperationException;
 import com.paymybuddy.application.exception.NotFoundException;
 import com.paymybuddy.application.exception.PrincipalAuthenticationException;
-import com.paymybuddy.application.model.ConnectionTransfer;
+import com.paymybuddy.application.model.Transaction;
 import com.paymybuddy.application.model.User;
 import com.paymybuddy.application.service.TransactionService;
 import com.paymybuddy.application.service.UserService;
@@ -30,14 +30,14 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Controller
-public class TransferController {
+public class TransactionController {
 
     private final UserService userService;
     private final TransactionService transactionService;
     private final PrincipalInfoFactory principalInfoFactory;
 
     @Autowired
-    public TransferController(UserService userService, PrincipalInfoFactory principalInfoFactory, TransactionService transactionService) {
+    public TransactionController(UserService userService, PrincipalInfoFactory principalInfoFactory, TransactionService transactionService) {
         this.userService = userService;
         this.principalInfoFactory = principalInfoFactory;
         this.transactionService = transactionService;
@@ -55,7 +55,7 @@ public class TransferController {
         PrincipalInfo principalInfo = principalInfoFactory.getPrincipalInfo(principal);
         User user = userService.getPrincipalByEmail(principalInfo.getEmail());
 
-        Page<ConnectionTransfer> transferPage = transactionService.findPaginated(principalInfo.getEmail(), PageRequest.of(currentPage - 1, pageSize));
+        Page<Transaction> transferPage = transactionService.findPaginated(principalInfo.getEmail(), PageRequest.of(currentPage - 1, pageSize));
 
         int totalPages = transferPage.getTotalPages();
         if (totalPages > 0) {
@@ -67,18 +67,18 @@ public class TransferController {
 
         model.addAttribute("transferPage", transferPage);
         model.addAttribute("user",user);
-        model.addAttribute("connectionTransferDto" , new ConnectionTranferDto());
+        model.addAttribute("transactionDto" , new TransactionDto());
         return "transfer";
     }
 
     @PostMapping("/transfer")
-    public String executeBankTransfer(
+    public String executeTransaction(
             HttpServletRequest request,
             RedirectAttributes redirectAttributes,
-            @Valid @ModelAttribute ConnectionTranferDto connectionTranferDto) throws PrincipalAuthenticationException, NotFoundException, ForbiddenOperationException {
+            @Valid @ModelAttribute TransactionDto transactionDto) throws PrincipalAuthenticationException, NotFoundException, ForbiddenOperationException {
 
         PrincipalInfo principalInfo = principalInfoFactory.getPrincipalInfo(request.getUserPrincipal());
-        userService.executeConnectionTransfer(principalInfo.getEmail(), connectionTranferDto);
+        userService.executeTransaction(principalInfo.getEmail(), transactionDto);
         redirectAttributes.addFlashAttribute("success","Transaction is completed");
         return "redirect:/transfer";
     }

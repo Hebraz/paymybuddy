@@ -4,6 +4,7 @@ import com.paymybuddy.application.controller.principalInfo.PrincipalInfo;
 import com.paymybuddy.application.controller.principalInfo.PrincipalInfoFactory;
 import com.paymybuddy.application.dto.BankTransferDto;
 import com.paymybuddy.application.dto.ConnectionDto;
+import com.paymybuddy.application.exception.ConflictException;
 import com.paymybuddy.application.exception.NotFoundException;
 import com.paymybuddy.application.exception.PrincipalAuthenticationException;
 import com.paymybuddy.application.service.UserService;
@@ -66,7 +67,7 @@ class ConnectionControllerTest {
     }
 
     @Test
-    void addConnection() throws PrincipalAuthenticationException, NotFoundException {
+    void addConnection() throws PrincipalAuthenticationException, NotFoundException, ConflictException {
         //prepare
         when(principalInfo.getEmail()).thenReturn("pierre.paul.oc@gmail.com");
         when(principalInfoFactory.getPrincipalInfo(any())).thenReturn(principalInfo);

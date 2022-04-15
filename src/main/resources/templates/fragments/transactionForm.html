@@ -19,7 +19,7 @@
     </head>
     <body>
         <main>
-            <form th:fragment="connection_transfer_form_template"  th:method="post" th:action="@{/transfer}" th:if="${user.connections.size > 0}"  th:object="${connectionTransferDto}" class="row gy-2 mt-1 bg-light p-1 p-md-4">
+            <form th:fragment="transaction_form_template"  th:method="post" th:action="@{/transfer}" th:if="${user.connections.size > 0}"  th:object="${transactionDto}" class="row gy-2 mt-1 bg-light p-1 p-md-4">
                 <div class="col-12">
                      <input th:field="*{description}" type="text" class="form-control" id="transferDescription" placeholder="Description"  required>
                 </div>
@@ -29,7 +29,7 @@
                     </select>
                 </div>
                 <div class="col-8 col-md-4">
-                    <input  th:field="*{amount}" type="text" class="form-control" placeholder="Amount">
+                    <input  th:field="*{amount}" type="text" class="form-control" placeholder="Amount" required>
                 </div>
                 <div class="col-2 text-end">
                     <button type="submit" class="btn btn-success px-4">Pay</button>

@@ -1,6 +1,6 @@
 package com.paymybuddy.application.service;
 
-import com.paymybuddy.application.model.ConnectionTransfer;
+import com.paymybuddy.application.model.Transaction;
 import com.paymybuddy.application.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,7 +23,7 @@ public class TransactionServiceImpl implements TransactionService {
      * @param pageable pagination specification
      * @return list of transaction.
      */
-    public Page<ConnectionTransfer> findPaginated(String email, Pageable pageable){
+    public Page<Transaction> findPaginated(String email, Pageable pageable){
         return transactionRepository.findByPayerOrCreditEmail(email, pageable);
     }
 }

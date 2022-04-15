@@ -1,9 +1,8 @@
 package com.paymybuddy.application.service;
 
-import com.paymybuddy.application.model.ConnectionTransfer;
+import com.paymybuddy.application.model.Transaction;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
 
 /**
  * Transaction service interface
@@ -16,5 +15,5 @@ public interface TransactionService {
      * @param pageable pagination specification
      * @return list of transaction.
      */
-    Page<ConnectionTransfer> findPaginated(String email, Pageable pageable);
+    Page<Transaction> findPaginated(String email, Pageable pageable);
 }

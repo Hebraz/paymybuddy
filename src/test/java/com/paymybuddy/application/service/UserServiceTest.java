@@ -3,14 +3,15 @@ package com.paymybuddy.application.service;
 import com.paymybuddy.application.contant.BankTransferType;
 import com.paymybuddy.application.dto.BankTransferDto;
 import com.paymybuddy.application.dto.ConnectionDto;
-import com.paymybuddy.application.dto.ConnectionTranferDto;
+import com.paymybuddy.application.dto.TransactionDto;
 import com.paymybuddy.application.dto.SignUpDto;
+import com.paymybuddy.application.exception.ConflictException;
 import com.paymybuddy.application.exception.ForbiddenOperationException;
 import com.paymybuddy.application.exception.NotFoundException;
 import com.paymybuddy.application.exception.PrincipalAuthenticationException;
 import com.paymybuddy.application.model.Authority;
 import com.paymybuddy.application.model.BankAccount;
-import com.paymybuddy.application.model.ConnectionTransfer;
+import com.paymybuddy.application.model.Transaction;
 import com.paymybuddy.application.model.User;
 import com.paymybuddy.application.repository.AuthorityRepository;
 import com.paymybuddy.application.repository.UserRepository;
@@ -94,7 +95,7 @@ class UserServiceTest {
         mockAuthority();
 
         //ACT
-        User userToSave = new User();
+        User userToSave = new User("pierre.pau@gmail.com","pwd","Pierre", "Paul", 0);
         User savedUser = userService.createUser(userToSave);
 
         //CHECK
@@ -105,7 +106,7 @@ class UserServiceTest {
 
     @Test
     void createExistent() {
-        User userToCreate = new User();
+        User userToCreate = new User("pierre.pau@gmail.com","pwd","Pierre", "Paul", 0);
         userToCreate.setId(1);
         //ACT & CHECK
         assertThrows(IllegalArgumentException.class,() ->  userService.createUser(userToCreate));
@@ -193,7 +194,7 @@ class UserServiceTest {
 
         //PREPARE
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(userInDatabase));
-
+        when(bankAccountService.isBankAccountOwnedByUser(any(Integer.class), any(String.class))).thenReturn(true);
         //ACT
         userService.executeBankTransfer(email,bankTransferDto);
 
@@ -216,7 +217,7 @@ class UserServiceTest {
 
         //PREPARE
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(userInDatabase));
-
+        when(bankAccountService.isBankAccountOwnedByUser(any(Integer.class), any(String.class))).thenReturn(true);
         //ACT
         assertThrows(ForbiddenOperationException.class, () -> userService.executeBankTransfer(email,bankTransferDto));
     }
@@ -240,7 +241,7 @@ class UserServiceTest {
 
         //PREPARE
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(userInDatabase));
-
+        when(bankAccountService.isBankAccountOwnedByUser(any(Integer.class), any(String.class))).thenReturn(true);
         //ACT
         userService.executeBankTransfer(email,bankTransferDto);
 
@@ -263,7 +264,7 @@ class UserServiceTest {
 
         //PREPARE
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(userInDatabase));
-
+        when(bankAccountService.isBankAccountOwnedByUser(any(Integer.class), any(String.class))).thenReturn(true);
         //ACT
         assertThrows(ForbiddenOperationException.class, () -> userService.executeBankTransfer(email,bankTransferDto));
     }
@@ -333,7 +334,7 @@ class UserServiceTest {
     }
 
     @Test
-    void addConnectionConnectionExistent() throws NotFoundException, PrincipalAuthenticationException {
+    void addConnectionConnectionExistent() throws NotFoundException, PrincipalAuthenticationException, ConflictException {
         String principalEmail = "principal@gmail.com";
         String connectionEmail = "connection@gmail.com";
         User connectionUser = new User(connectionEmail, "pwd","Peter","Johns",12);
@@ -349,7 +350,7 @@ class UserServiceTest {
     }
 
     @Test
-    void executeConnectionTransferConnectionNonExistent (){
+    void executeTransactionConnectionNonExistent (){
         String principalEmail = "principal@gmail.com";
         String connectionEmail = "connection@gmail.com";
         //PREPARE
@@ -358,13 +359,13 @@ class UserServiceTest {
 
         //CHECK
         assertThrows(NotFoundException.class,
-                () -> userService.executeConnectionTransfer(
+                () -> userService.executeTransaction(
                         principalEmail,
-                        new ConnectionTranferDto(connectionEmail,BigDecimal.ZERO)));
+                        new TransactionDto(connectionEmail,BigDecimal.ZERO)));
     }
 
     @Test
-    void executeConnectionTransferBalanceNotEnough (){
+    void executeTransactionBalanceNotEnough (){
         String principalEmail = "principal@gmail.com";
         String connectionEmail = "connection@gmail.com";
         //PREPARE
@@ -372,29 +373,29 @@ class UserServiceTest {
         when(userRepository.findByEmail(connectionEmail)).thenReturn(Optional.empty());
         User connectionUser = new User(connectionEmail, "pwd","Peter","Johns",1000);
         User principalUser = new User(principalEmail, "pwd","Pierre","Paul",2000);
-        ConnectionTranferDto tranferDto = new ConnectionTranferDto(connectionEmail,BigDecimal.valueOf(20.01));
+        TransactionDto tranferDto = new TransactionDto(connectionEmail,BigDecimal.valueOf(20.01));
 
         //CHECK
         assertThrows(NotFoundException.class,
-                () -> userService.executeConnectionTransfer(
+                () -> userService.executeTransaction(
                         principalEmail,
                         tranferDto));
     }
 
 
     @Test
-    void executeConnectionTransferNominal() throws NotFoundException, ForbiddenOperationException, PrincipalAuthenticationException {
+    void executeTransactionNominal() throws NotFoundException, ForbiddenOperationException, PrincipalAuthenticationException {
         String principalEmail = "principal@gmail.com";
         String connectionEmail = "connection@gmail.com";
         User connectionUser = new User(connectionEmail, "pwd","Peter","Johns",1003);
         User principalUser = new User(principalEmail, "pwd","Pierre","Paul",2010);
-        ConnectionTranferDto tranferDto = new ConnectionTranferDto(connectionEmail,BigDecimal.valueOf(5.02));
+        TransactionDto tranferDto = new TransactionDto(connectionEmail,BigDecimal.valueOf(5.02));
         //PREPARE
         when(userRepository.findByEmail(principalEmail)).thenReturn(Optional.of(principalUser));
         when(userRepository.findByEmail(connectionEmail)).thenReturn(Optional.of(connectionUser));
         mockFeeRate();
         //CHECK
-        userService.executeConnectionTransfer(principalEmail,tranferDto);
+        userService.executeTransaction(principalEmail,tranferDto);
         //CHECK
         verify(userRepository).save(principalUser);
         verify(userRepository).save(connectionUser);
@@ -402,10 +403,10 @@ class UserServiceTest {
         assertThat(principalUser.getBalance()).isEqualTo(1508);
         assertThat(connectionUser.getBalance()).isEqualTo(1505);
 
-        ConnectionTransfer transfer = principalUser.getTransactionsAsPayer().get(0);
+        Transaction transfer = principalUser.getTransactionsAsPayer().get(0);
         assertThat(transfer)
-                .extracting(ConnectionTransfer::getTotalAmount,
-                        ConnectionTransfer::getFeeAmount)
+                .extracting(Transaction::getTotalAmount,
+                        Transaction::getFeeAmount)
                 .containsExactly(502L, 25L);
 
         assertThat(transfer.getDate()).isBetween(Instant.now().minusSeconds(1), Instant.now());

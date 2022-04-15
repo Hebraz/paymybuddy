@@ -2,14 +2,15 @@ package com.paymybuddy.application.service;
 
 import com.paymybuddy.application.dto.BankTransferDto;
 import com.paymybuddy.application.dto.ConnectionDto;
-import com.paymybuddy.application.dto.ConnectionTranferDto;
+import com.paymybuddy.application.dto.TransactionDto;
 import com.paymybuddy.application.dto.SignUpDto;
+import com.paymybuddy.application.exception.ConflictException;
 import com.paymybuddy.application.exception.ForbiddenOperationException;
 import com.paymybuddy.application.exception.NotFoundException;
 import com.paymybuddy.application.exception.PrincipalAuthenticationException;
 import com.paymybuddy.application.model.BankAccount;
 import com.paymybuddy.application.model.User;
-import org.springframework.stereotype.Service;
+
 import java.util.Optional;
 
 /**
@@ -81,17 +82,17 @@ public interface UserService {
      * @param connectionDto email of connection to add.
      */
     void addConnection(String principalEmail, ConnectionDto connectionDto)
-            throws PrincipalAuthenticationException, NotFoundException;
+            throws PrincipalAuthenticationException, NotFoundException, ConflictException;
 
     /**
-     * Executes a bank transfer: update user balance and register the transfer
+     * Executes a transfer between a user and a connection : update user balance and register the transfer
      * @param userEmail email of user that executes the bank transfer
-     * @param connectionTransferDto a ConnectionTransferDto object
+     * @param transactionDto a TransactionDto object
      * @throws ForbiddenOperationException when transfer would lead to negative balance or overflow
      * @throws NotFoundException when bank account does not exist in database
      * @throws PrincipalAuthenticationException when principal user is not identified
      */
-     void executeConnectionTransfer(String userEmail, ConnectionTranferDto connectionTransferDto)
+     void executeTransaction(String userEmail, TransactionDto transactionDto)
             throws ForbiddenOperationException, NotFoundException, PrincipalAuthenticationException;
 
 }

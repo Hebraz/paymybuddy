@@ -1,5 +1,6 @@
 package com.paymybuddy.application.controller;
 
+import com.paymybuddy.application.exception.ForbiddenOperationException;
 import com.paymybuddy.application.exception.NotFoundException;
 import com.paymybuddy.application.exception.PrincipalAuthenticationException;
 import com.paymybuddy.application.controller.principalInfo.PrincipalInfo;
@@ -12,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
@@ -61,9 +64,11 @@ public class BankAccountController {
     @DeleteMapping("/bankAccount/{id}")
     public String deleteBankAccount(
             HttpServletRequest request,
-            @PathVariable("id") int id){
+            @PathVariable("id") int id) throws PrincipalAuthenticationException, ForbiddenOperationException {
 
-        bankAccountService.deleteBankAccount(id);
+        PrincipalInfo principalInfo = principalInfoFactory.getPrincipalInfo(request.getUserPrincipal());
+
+        bankAccountService.deleteBankAccount(id, principalInfo.getEmail());
         return "redirect:"+ request.getHeader("Referer");
     }
 
@@ -93,9 +98,12 @@ public class BankAccountController {
     @PutMapping("/bankAccount")
     public String updateBankAccount(
             HttpServletRequest request,
-            @Valid @ModelAttribute BankAccount bankAccount){
+            RedirectAttributes redirectAttributes,
+            @Valid @ModelAttribute BankAccount bankAccount) throws PrincipalAuthenticationException, ForbiddenOperationException {
 
-        bankAccountService.saveBankAccount(bankAccount);
+        PrincipalInfo principalInfo = principalInfoFactory.getPrincipalInfo(request.getUserPrincipal());
+        bankAccountService.updateBankAccount(bankAccount, principalInfo.getEmail());
+        redirectAttributes.addFlashAttribute("success","Bank account has been updated.");
         return "redirect:"+ request.getHeader("Referer");
     }
 }

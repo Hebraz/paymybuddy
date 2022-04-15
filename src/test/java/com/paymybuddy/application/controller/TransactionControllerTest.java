@@ -2,12 +2,11 @@ package com.paymybuddy.application.controller;
 
 import com.paymybuddy.application.controller.principalInfo.PrincipalInfo;
 import com.paymybuddy.application.controller.principalInfo.PrincipalInfoFactory;
-import com.paymybuddy.application.dto.BankTransferDto;
-import com.paymybuddy.application.dto.ConnectionTranferDto;
+import com.paymybuddy.application.dto.TransactionDto;
 import com.paymybuddy.application.exception.ForbiddenOperationException;
 import com.paymybuddy.application.exception.NotFoundException;
 import com.paymybuddy.application.exception.PrincipalAuthenticationException;
-import com.paymybuddy.application.model.ConnectionTransfer;
+import com.paymybuddy.application.model.Transaction;
 import com.paymybuddy.application.model.User;
 import com.paymybuddy.application.service.TransactionService;
 import com.paymybuddy.application.service.UserService;
@@ -33,12 +32,11 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class TransferControllerTest {
+class TransactionControllerTest {
 
     @Mock
     PrincipalInfo principalInfo;
@@ -58,25 +56,25 @@ class TransferControllerTest {
     Principal principal;
 
 
-    TransferController transferController;
+    TransactionController transactionController;
 
     @BeforeEach
     void initializeTest(){
-        transferController = new TransferController(userService,principalInfoFactory,transactionService);
+        transactionController = new TransactionController(userService,principalInfoFactory,transactionService);
     }
     @Test
     void showTransferFormNoParameter() throws PrincipalAuthenticationException {
         String email = "pierre.paul.oc@gmail.com";
         User userInDb = new User(email,"pwd","Pierre", "Paul", 0);
         ArgumentCaptor<PageRequest> pageRequest= ArgumentCaptor.forClass(PageRequest.class);
-        Page<ConnectionTransfer> page = getPage(5, 18); // => 4 pages
+        Page<Transaction> page = getPage(5, 18); // => 4 pages
         //PREPARE
         when(principalInfo.getEmail()).thenReturn(email);
         when(principalInfoFactory.getPrincipalInfo(any())).thenReturn(principalInfo);
         when(userService.getPrincipalByEmail(any())).thenReturn(userInDb);
         when(transactionService.findPaginated(any(),any())).thenReturn(page);
         //ACT
-        String htmlPage = transferController.showTransferForm(model,principal, Optional.empty(),Optional.empty());
+        String htmlPage = transactionController.showTransferForm(model,principal, Optional.empty(),Optional.empty());
         //CHECK
         verify(transactionService, times(1)).findPaginated(eq(email) , pageRequest.capture());
         assertThat(pageRequest.getValue())
@@ -93,14 +91,14 @@ class TransferControllerTest {
         String email = "pierre.paul.oc@gmail.com";
         User userInDb = new User(email,"pwd","Pierre", "Paul", 0);
         ArgumentCaptor<PageRequest> pageRequest= ArgumentCaptor.forClass(PageRequest.class);
-        Page<ConnectionTransfer> page = getPage(10, 10); // => 1 pages
+        Page<Transaction> page = getPage(10, 10); // => 1 pages
         //PREPARE
         when(principalInfo.getEmail()).thenReturn(email);
         when(principalInfoFactory.getPrincipalInfo(any())).thenReturn(principalInfo);
         when(userService.getPrincipalByEmail(any())).thenReturn(userInDb);
         when(transactionService.findPaginated(any(),any())).thenReturn(page);
         //ACT
-        String htmlPage = transferController.showTransferForm(model,principal, Optional.of(2),Optional.of(4));
+        String htmlPage = transactionController.showTransferForm(model,principal, Optional.of(2),Optional.of(4));
         //CHECK
         verify(transactionService, times(1)).findPaginated(eq(email) , pageRequest.capture());
         assertThat(pageRequest.getValue())
@@ -114,23 +112,23 @@ class TransferControllerTest {
 
     @Test
     void executeBankTransfer() throws PrincipalAuthenticationException, NotFoundException, ForbiddenOperationException {
-        ConnectionTranferDto connectionTranferDto = new ConnectionTranferDto("hello@openclassrooms.com", BigDecimal.valueOf(200.25));
+        TransactionDto transactionDto = new TransactionDto("hello@openclassrooms.com", BigDecimal.valueOf(200.25));
         //PREPARE
         when(principalInfo.getEmail()).thenReturn("pierre.paul.oc@gmail.com");
         when(principalInfoFactory.getPrincipalInfo(any())).thenReturn(principalInfo);
         //ACT
-        String page = transferController.executeBankTransfer(httpServletRequest,redirectAttributes,connectionTranferDto);
+        String page = transactionController.executeTransaction(httpServletRequest,redirectAttributes, transactionDto);
         //CHECK
-        verify(userService,times(1)).executeConnectionTransfer("pierre.paul.oc@gmail.com", connectionTranferDto);
+        verify(userService,times(1)).executeTransaction("pierre.paul.oc@gmail.com", transactionDto);
         assertThat(page).isEqualTo("redirect:/transfer");
     }
 
-    private Page<ConnectionTransfer> getPage(int pageSize, int totalRecords)
+    private Page<Transaction> getPage(int pageSize, int totalRecords)
     {
-        return  new PageImpl<ConnectionTransfer>(
-                List.of(new ConnectionTransfer(Instant.now(), 100, "Transfer 1", 10 ),
-                        new ConnectionTransfer(Instant.now().plusSeconds(300), 500, "Transfer 2", 50 ),
-                        new ConnectionTransfer(Instant.now().plusSeconds(600), 100050, "Transfer 3", 1000 )),
+        return  new PageImpl<Transaction>(
+                List.of(new Transaction(Instant.now(), 100, "Transfer 1", 10 ),
+                        new Transaction(Instant.now().plusSeconds(300), 500, "Transfer 2", 50 ),
+                        new Transaction(Instant.now().plusSeconds(600), 100050, "Transfer 3", 1000 )),
                 Pageable.ofSize(pageSize),
                 totalRecords);
     }

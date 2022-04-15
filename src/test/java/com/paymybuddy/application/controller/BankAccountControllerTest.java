@@ -2,6 +2,7 @@ package com.paymybuddy.application.controller;
 
 import com.paymybuddy.application.controller.principalInfo.PrincipalInfo;
 import com.paymybuddy.application.controller.principalInfo.PrincipalInfoFactory;
+import com.paymybuddy.application.exception.ForbiddenOperationException;
 import com.paymybuddy.application.exception.NotFoundException;
 import com.paymybuddy.application.exception.PrincipalAuthenticationException;
 import com.paymybuddy.application.model.BankAccount;
@@ -12,15 +13,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.autoconfigure.liquibase.LiquibaseDataSource;
 import org.springframework.ui.Model;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 
-import java.net.BindException;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -32,6 +30,9 @@ class BankAccountControllerTest {
 
     @Mock
     PrincipalInfoFactory principalInfoFactory;
+
+    @Mock
+    RedirectAttributes redirectAttributes;
 
     @Mock
     UserService userService;
@@ -69,15 +70,19 @@ class BankAccountControllerTest {
     }
 
     @Test
-    void deleteBankAccount() {
+    void deleteBankAccount() throws PrincipalAuthenticationException, ForbiddenOperationException {
+        String userEmail = "toto@tata.com";
+        int id = 49489;
         //prepare
+        when(principalInfo.getEmail()).thenReturn(userEmail);
+        when(principalInfoFactory.getPrincipalInfo(any())).thenReturn(principalInfo);
         when(httpServletRequest.getHeader("Referer")).thenReturn("parent_page");
 
         //ACT
-        String page = bankAccountController.deleteBankAccount(httpServletRequest,434);
+        String page = bankAccountController.deleteBankAccount(httpServletRequest,id);
 
         //CHECK
-        verify(bankAccountService,times(1)).deleteBankAccount(434);
+        verify(bankAccountService,times(1)).deleteBankAccount(id, userEmail);
         assertThat(page).isEqualTo("redirect:parent_page");
     }
 
@@ -96,16 +101,20 @@ class BankAccountControllerTest {
     }
 
     @Test
-    void updateBankAccount() {
+    void updateBankAccount() throws ForbiddenOperationException, PrincipalAuthenticationException {
+        String userEmail = "toto@tata.com";
+        //prepare
+        when(principalInfo.getEmail()).thenReturn(userEmail);
+        when(principalInfoFactory.getPrincipalInfo(any())).thenReturn(principalInfo);
         //prepare
         BankAccount bankAccount = new BankAccount("BNP", "FR1234568978945123125");
         when(httpServletRequest.getHeader("Referer")).thenReturn("parent_page");
 
         //ACT
-        String page = bankAccountController.updateBankAccount(httpServletRequest,bankAccount);
+        String page = bankAccountController.updateBankAccount(httpServletRequest,redirectAttributes,bankAccount);
 
         //CHECK
-        verify(bankAccountService,times(1)).saveBankAccount(bankAccount);
+        verify(bankAccountService,times(1)).updateBankAccount(bankAccount, userEmail);
         assertThat(page).isEqualTo("redirect:parent_page");
     }
 }

@@ -2,14 +2,17 @@ package com.paymybuddy.application.service;
 
 import com.paymybuddy.application.contant.BankTransferType;
 import com.paymybuddy.application.dto.BankTransferDto;
+import com.paymybuddy.application.exception.ForbiddenOperationException;
 import com.paymybuddy.application.exception.NotFoundException;
 import com.paymybuddy.application.model.BankAccount;
 import com.paymybuddy.application.model.BankTransfer;
 import com.paymybuddy.application.repository.BankAccountRepository;
 import org.springframework.stereotype.Service;
 
+import java.lang.management.OperatingSystemMXBean;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -40,20 +43,42 @@ public class BankAccountServiceImpl implements  BankAccountService{
     }
 
     /**
-     * Saves bank account into database. Can be use to create (null id) ar update (not null id) a bank account
+     * Update bank account into database. Must be owned by given user (by email).
+     * Cannot be use to create (null id) a bank account
      * @param bankAccount bank account instance to save
+     * @param email user's email
+     * @throws ForbiddenOperationException when a user try to save an account of another person
+     * @throws IllegalArgumentException when trying to create a bank account (id null)
      * @return the saved bank account.
      */
-    public BankAccount saveBankAccount(BankAccount bankAccount){
-        return bankAccountRepository.save(bankAccount);
+    public BankAccount updateBankAccount(BankAccount bankAccount, String email) throws ForbiddenOperationException {
+        Integer id = bankAccount.getId();
+        if(Objects.nonNull(id)) {
+            //Before updating bank account, check that it is owned by principal
+            if(isBankAccountOwnedByUser(id,email)){
+                return bankAccountRepository.save(bankAccount);
+            } else {
+                throw new ForbiddenOperationException(email + " cannot update this bank account");
+            }
+        } else {
+                throw new IllegalArgumentException("Bank account cannot be created");
+        }
+
     }
 
     /**
-     * Deletes a bank account by Id.
+     * Deletes a bank account by Id. Must be owned by given user (by email)
      * @param id id of the bank account
+     * @param email user's email
+     * @throws ForbiddenOperationException when a user try to delete account of another person
      */
-    public void deleteBankAccount(int id){
-        bankAccountRepository.deleteById(id);
+    public void deleteBankAccount(int id, String email) throws ForbiddenOperationException {
+        //Before deleting bank account, check that it is owned by principal
+        if(isBankAccountOwnedByUser(id,email)){
+            bankAccountRepository.deleteById(id);
+        } else {
+            throw new ForbiddenOperationException(email + " does not own this bank account");
+        }
     }
 
 
@@ -93,8 +118,14 @@ public class BankAccountServiceImpl implements  BankAccountService{
         return new BankTransfer(Instant.now(), amountInCents, transferType.toString());
     }
 
-
-
-
-
+    /**
+     * Checks if a given bank account is owned by a given user
+     * @param bankAccountId id of the bank account
+     * @param email user's email
+     * @return true is user owns the bank account, false else.
+     */
+    public Boolean isBankAccountOwnedByUser(int bankAccountId, String email){
+        Optional<BankAccount> bankAccountResult = bankAccountRepository.findByIdAndByUserEmail(bankAccountId, email);
+        return bankAccountResult.isPresent();
+    }
 }

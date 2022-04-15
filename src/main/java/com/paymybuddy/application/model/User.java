@@ -43,12 +43,12 @@ public class User {
     deleting user shall not delete the associated transactions as payer,
     as these transactions may be consulted by the credit user*/
     @OneToMany( mappedBy = "payer", cascade = {CascadeType.PERSIST, CascadeType.MERGE })
-    private List<ConnectionTransfer> transactionsAsPayer;
+    private List<Transaction> transactionsAsPayer;
 
     /*Bidirectional mapping,
     Do not persist nor update transaction => done by payer side*/
     @OneToMany( mappedBy = "credit")
-    private List<ConnectionTransfer> transactionsAsCredit;
+    private List<Transaction> transactionsAsCredit;
 
     /*Unidirectional mapping,
     deleting user shall not delete connections*/
@@ -88,14 +88,14 @@ public class User {
         this.balance = balance;
     }
 
-    public void addTransactionAsPayer(ConnectionTransfer connectionTransfer){
-        connectionTransfer.setPayer(this);
-        transactionsAsPayer.add(connectionTransfer);
+    public void addTransactionAsPayer(Transaction transaction){
+        transaction.setPayer(this);
+        transactionsAsPayer.add(transaction);
     }
 
-    public void addTransactionAsCredit(ConnectionTransfer connectionTransfer){
-        connectionTransfer.setCredit(this);
-        transactionsAsCredit.add(connectionTransfer);
+    public void addTransactionAsCredit(Transaction transaction){
+        transaction.setCredit(this);
+        transactionsAsCredit.add(transaction);
     }
 }
 

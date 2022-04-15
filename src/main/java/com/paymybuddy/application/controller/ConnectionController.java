@@ -3,6 +3,7 @@ package com.paymybuddy.application.controller;
 import com.paymybuddy.application.controller.principalInfo.PrincipalInfo;
 import com.paymybuddy.application.controller.principalInfo.PrincipalInfoFactory;
 import com.paymybuddy.application.dto.ConnectionDto;
+import com.paymybuddy.application.exception.ConflictException;
 import com.paymybuddy.application.exception.NotFoundException;
 import com.paymybuddy.application.exception.PrincipalAuthenticationException;
 import com.paymybuddy.application.service.UserService;
@@ -50,7 +51,7 @@ public class ConnectionController {
     public String addConnection(
             RedirectAttributes redirectAttributes,
             Principal principal,
-            @Email @ModelAttribute ConnectionDto connectionDto) throws PrincipalAuthenticationException, NotFoundException {
+            @ModelAttribute ConnectionDto connectionDto) throws PrincipalAuthenticationException, NotFoundException, ConflictException {
 
         PrincipalInfo principalInfo = principalInfoFactory.getPrincipalInfo(principal);
         userService.addConnection(principalInfo.getEmail(), connectionDto);

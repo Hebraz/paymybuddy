@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 @Getter
 @Setter
-public class ConnectionTranferDto {
+public class TransactionDto {
 
     @Email
     private String connectionEmail;
@@ -21,10 +21,10 @@ public class ConnectionTranferDto {
     @Size(max=100, message="Email must be at most 100 characters in length")
     private String description;
 
-    public ConnectionTranferDto(String connectionEmail, BigDecimal amount) {
+    public TransactionDto(String connectionEmail, BigDecimal amount) {
         this.connectionEmail = connectionEmail;
         this.amount = amount;
     }
 
-    public ConnectionTranferDto(){}
+    public TransactionDto(){}
 }

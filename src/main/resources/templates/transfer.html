@@ -28,11 +28,17 @@
                                     <h2  class="fs-5 my-auto">Send Money</h2>
                                     <a th:href="@{/connection}" class="btn btn-primary px-4 ">Add Connection</a>
                                 </div>
-                                 <div th:replace="fragments/connectionTransferForm :: connection_transfer_form_template"></div>
+                                 <div th:replace="fragments/transactionForm :: transaction_form_template"></div>
                         </section>
                         <section  class="main_section">
                                 <h2  class="fs-5 my-auto mb-1">My Transactions</h2>
-                                <div th:replace="fragments/connectionTransferTable :: connection_transfer_table_template"></div>
+                                <div th:if="${transferPage.totalPages > 0}">
+                                    <div  th:replace="fragments/transactionTable :: transaction_table_template"></div>
+                                </div>
+                                 <div th:unless="${transferPage.totalPages > 0}">
+                                    <hr/>
+                                    <p>No transaction yet !</p>
+                                </div>
                         </section>
                     </div>
                 </div>

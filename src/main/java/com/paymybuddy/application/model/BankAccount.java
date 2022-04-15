@@ -19,7 +19,7 @@ import java.util.List;
 public class BankAccount {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+    private Integer id;
 
     @Column(unique=true)
     @Pattern(regexp = "^FR[0-9]{23}$", message = "IBAN format must be: 'FR' followed by 23 digits")

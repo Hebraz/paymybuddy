@@ -3,14 +3,15 @@ package com.paymybuddy.application.service;
 import com.paymybuddy.application.contant.BankTransferType;
 import com.paymybuddy.application.dto.BankTransferDto;
 import com.paymybuddy.application.dto.ConnectionDto;
-import com.paymybuddy.application.dto.ConnectionTranferDto;
+import com.paymybuddy.application.dto.TransactionDto;
 import com.paymybuddy.application.dto.SignUpDto;
+import com.paymybuddy.application.exception.ConflictException;
 import com.paymybuddy.application.exception.ForbiddenOperationException;
 import com.paymybuddy.application.exception.NotFoundException;
 import com.paymybuddy.application.exception.PrincipalAuthenticationException;
 import com.paymybuddy.application.model.Authority;
 import com.paymybuddy.application.model.BankAccount;
-import com.paymybuddy.application.model.ConnectionTransfer;
+import com.paymybuddy.application.model.Transaction;
 import com.paymybuddy.application.model.User;
 import com.paymybuddy.application.repository.AuthorityRepository;
 import com.paymybuddy.application.repository.UserRepository;
@@ -18,8 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.*;
 
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
@@ -75,6 +76,7 @@ public class UserServiceImpl implements UserService {
             //create Authority
             Optional<Authority> authorityResult = authorityRepository.findByAuthority(USER_ROLE);
             user.setAuthority(authorityResult.get());
+            user.setEmail(user.getEmail().toLowerCase(Locale.ROOT));
             return userRepository.save(user);
         } else {
             throw new IllegalArgumentException("Cannot create existing user : " + user.getEmail());
@@ -86,7 +88,7 @@ public class UserServiceImpl implements UserService {
      */
     public User createUserAccount(SignUpDto signUpDto) throws ForbiddenOperationException {
 
-        String email = signUpDto.getEmail();
+        String email = signUpDto.getEmail().toLowerCase(Locale.ROOT);
         String emailConfirmation = signUpDto.getEmailConfirmation();
         String firstName = signUpDto.getFirstName();
         String lastName = signUpDto.getLastName();
@@ -141,7 +143,7 @@ public class UserServiceImpl implements UserService {
      * @param bankAccount bank account instance to add
      * @throws PrincipalAuthenticationException when no principal user exists in database with given email
      */
-    @Transactional
+    @Transactional(rollbackFor = { PrincipalAuthenticationException.class })
     public void addBankAccount(String userEmail, BankAccount bankAccount) throws PrincipalAuthenticationException {
         //Check if a bank account with same IBAN does not already exist fro current user
         User user = getPrincipalByEmail(userEmail);
@@ -157,22 +159,29 @@ public class UserServiceImpl implements UserService {
      * @throws NotFoundException when bank account does not exist in database
      * @throws PrincipalAuthenticationException when principal user is not identified
      */
-    @Transactional
+    @Transactional(rollbackFor = { ForbiddenOperationException.class, NotFoundException.class })
     public void executeBankTransfer(String userEmail, BankTransferDto bankTransferDto) throws ForbiddenOperationException, NotFoundException, PrincipalAuthenticationException {
-        User user = getPrincipalByEmail(userEmail);
-        long amountInCents = bankTransferDto.getAmount().multiply(BigDecimal.valueOf(100)).longValueExact(); //amount is validated at controller level. No overflow can occur here
-        BankTransferType transferType = bankTransferDto.getTransferType();
+        //Check that bank is owned by user
+        if(bankAccountService.isBankAccountOwnedByUser(bankTransferDto.getBankId(),userEmail)){
+            User user = getPrincipalByEmail(userEmail);
+            long amountInCents = bankTransferDto.getAmount().multiply(BigDecimal.valueOf(100)).longValueExact(); //amount is validated at controller level. No overflow can occur here
+            BankTransferType transferType = bankTransferDto.getTransferType();
 
-        if(transferType == BankTransferType.DEBIT_MYBUDDY_ACCOUNT)
-        {
-            amountInCents = -amountInCents;
+            if(transferType == BankTransferType.DEBIT_MYBUDDY_ACCOUNT)
+            {
+                amountInCents = -amountInCents;
+            }
+
+            /*update user balance*/
+            updateUserBalance(user,amountInCents);
+            userRepository.save(user);
+
+            /*add bankTransfer*/
+            bankAccountService.addTransfer(bankTransferDto);
+        } else {
+            throw new ForbiddenOperationException(userEmail + " is not authorized to perform a transfer with this bank account");
         }
-        /*update user balance*/
-        updateUserBalance(user,amountInCents);
-        userRepository.save(user);
 
-        /*add bankTransfer*/
-        bankAccountService.addTransfer(bankTransferDto);
     }
 
 
@@ -202,8 +211,7 @@ public class UserServiceImpl implements UserService {
      * @return formatted amount
      */
     private String amountInCentToString(long amountInCents){
-        BigDecimal amount = BigDecimal.valueOf(amountInCents).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
-        return String.format(Locale.FRANCE, "%,.2f", amount);
+        return String.format(Locale.FRANCE, "%,.2f", BigDecimal.valueOf(amountInCents,2));
     }
 
     /**
@@ -211,36 +219,41 @@ public class UserServiceImpl implements UserService {
      * @param principalEmail email of active user.
      * @param connectionDto email of connection to add.
      */
-    public void addConnection(String principalEmail, ConnectionDto connectionDto) throws PrincipalAuthenticationException, NotFoundException {
+    public void addConnection(String principalEmail, ConnectionDto connectionDto) throws PrincipalAuthenticationException, NotFoundException, ConflictException {
         User user = getPrincipalByEmail(principalEmail);
         Optional<User> connectionResult = userRepository.findByEmail(connectionDto.getEmail());
         if(connectionResult.isPresent()){
             User connection = connectionResult.get();
-            user.getConnections().add(connection);
-            userRepository.save(user);
+            //add connection only if not already done
+            if(! user.getConnections().contains(connection)){
+                user.getConnections().add(connection);
+                userRepository.save(user);
+            } else {
+                throw new ConflictException(connection.getEmail() + " has already been added.");
+            }
         } else {
             throw new NotFoundException("No connection found with email " + connectionDto.getEmail());
         }
     }
 
     /**
-     * Executes a bank transfer: update user balance and register the transfer
+     * Executes a transfer between a user and a connection : update user balance and register the transfer
      * @param userEmail email of user that executes the bank transfer
-     * @param connectionTransferDto a ConnectionTransferDto object
+     * @param transactionDto a TransactionDto object
      * @throws ForbiddenOperationException when transfer would lead to negative balance or overflow
      * @throws NotFoundException when bank account does not exist in database
      * @throws PrincipalAuthenticationException when principal user is not identified
      */
-    @Transactional
-    public void executeConnectionTransfer(String userEmail, ConnectionTranferDto connectionTransferDto) throws ForbiddenOperationException, NotFoundException, PrincipalAuthenticationException {
-        String connectionEmail = connectionTransferDto.getConnectionEmail();
+    @Transactional(rollbackFor = { ForbiddenOperationException.class, NotFoundException.class })
+    public void executeTransaction(String userEmail, TransactionDto transactionDto) throws ForbiddenOperationException, NotFoundException, PrincipalAuthenticationException {
+        String connectionEmail = transactionDto.getConnectionEmail();
         User user = getPrincipalByEmail(userEmail);
 
         Optional<User> connectionUserResult = findByEmail(connectionEmail);
         if(connectionUserResult.isPresent()){
             User connectionUser = connectionUserResult.get();
 
-            ConnectionTransfer transfer = connectionTransferFromDto(connectionTransferDto);
+            Transaction transfer = transactionFromDto(transactionDto);
 
             updateUserBalance(user,-transfer.getTotalAmount());
             updateUserBalance(connectionUser,transfer.getTotalAmount());
@@ -256,12 +269,12 @@ public class UserServiceImpl implements UserService {
     }
 
      /**
-     * Create a ConnectionTransfer object from a ConnectionTransferDto
-     * @param connectionTransferDto a ConnectionTransferDto instance
-     * @return the corresponding ConnectionTransfer
+     * Create a Transaction object from a TransactionDto
+     * @param transactionDto a TransactionDto instance
+     * @return the corresponding Transaction
      */
-    private ConnectionTransfer connectionTransferFromDto(ConnectionTranferDto connectionTransferDto){
-        long amountInCents = connectionTransferDto.getAmount()
+    private Transaction transactionFromDto(TransactionDto transactionDto){
+        long amountInCents = transactionDto.getAmount()
                 .multiply(BigDecimal.valueOf(100))
                 .longValue(); //amount is validated at controller level. No overflow can occur here
 
@@ -269,6 +282,6 @@ public class UserServiceImpl implements UserService {
                 .multiply(FEE_RATE)
                 .longValue();
 
-        return new ConnectionTransfer(Instant.now(),amountInCents,connectionTransferDto.getDescription(),feeRate);
+        return new Transaction(Instant.now(),amountInCents,transactionDto.getDescription(),feeRate);
     }
 }

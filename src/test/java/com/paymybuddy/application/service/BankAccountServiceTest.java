@@ -2,6 +2,7 @@ package com.paymybuddy.application.service;
 
 import com.paymybuddy.application.contant.BankTransferType;
 import com.paymybuddy.application.dto.BankTransferDto;
+import com.paymybuddy.application.exception.ForbiddenOperationException;
 import com.paymybuddy.application.exception.NotFoundException;
 import com.paymybuddy.application.model.BankAccount;
 import com.paymybuddy.application.model.BankTransfer;
@@ -57,24 +58,63 @@ class BankAccountServiceTest {
     }
 
     @Test
-    void saveBankAccount() {
+    void saveBankAccountNonexistent() {
         //PREPARE
+        BankAccount bankAccount = new BankAccount("BNP", "FR89789456456456489"); // id is null
+        assertThrows(IllegalArgumentException.class, () -> bankAccountService.updateBankAccount(bankAccount, ""));
+    }
+
+    @Test
+    void saveBankAccountNominal() throws ForbiddenOperationException {
+        String principalEmail = "toto@tata.com";
+        int id = 1;
         BankAccount bankAccount = new BankAccount("BNP", "FR89789456456456489");
+        bankAccount.setId(id);
 
+        //PREPARE
+        when(bankAccountRepository.findByIdAndByUserEmail(id, principalEmail)).thenReturn(Optional.of(new BankAccount()));
         //ACT
-        BankAccount  returnedBankAccount = bankAccountService.saveBankAccount(bankAccount);
-
+        BankAccount  returnedBankAccount = bankAccountService.updateBankAccount(bankAccount, principalEmail);
         //CHECK
         verify(bankAccountRepository, times(1)).save(bankAccount);
     }
 
     @Test
-    void deleteBankAccount() {
-        //ACT
-        bankAccountService.deleteBankAccount(49489);
+    void saveBankAccountOwnByANotherOne() throws ForbiddenOperationException {
+        String principalEmail = "toto@tata.com";
+        int id = 1;
+        BankAccount bankAccount = new BankAccount("BNP", "FR89789456456456489");
+        bankAccount.setId(id);
 
+        //PREPARE
+        when(bankAccountRepository.findByIdAndByUserEmail(id, principalEmail)).thenReturn(Optional.empty());
+        //ACT
+        assertThrows(ForbiddenOperationException.class, () -> bankAccountService.updateBankAccount(bankAccount, principalEmail));
         //CHECK
-        verify(bankAccountRepository, times(1)).deleteById(49489);
+        verify(bankAccountRepository, never()).save(bankAccount);
+    }
+
+    @Test
+    void deleteBankAccountOwnedByUser() throws ForbiddenOperationException {
+        String userEmail = "toto@tata.com";
+        int id = 49489;
+        //PREPARE
+        when(bankAccountRepository.findByIdAndByUserEmail(id, userEmail)).thenReturn(Optional.of(new BankAccount()));
+        //ACT
+        bankAccountService.deleteBankAccount(id,userEmail);
+        //CHECK
+        verify(bankAccountRepository, times(1)).deleteById(id);
+    }
+
+    @Test
+    void deleteBankAccountNotOwnedByUser() {
+        String userEmail = "toto@tata.com";
+        int id = 49489;
+        //PREPARE
+        when(bankAccountRepository.findByIdAndByUserEmail(id, userEmail)).thenReturn(Optional.empty());
+
+        //ACT
+        assertThrows(ForbiddenOperationException.class, () -> bankAccountService.deleteBankAccount(id, userEmail));
     }
 
     @Test
