@@ -84,7 +84,7 @@ public class transactionIT {
                .andExpect(status().isFound());
 
        //check balance of john and tessa after transaction
-       assertThat(userRepository.findByEmail(johnEmail).get().getBalance()).isEqualTo(147);
+       assertThat(userRepository.findByEmail(johnEmail).get().getBalance()).isEqualTo(95L);
        assertThat(userRepository.findByEmail(tessaEmail).get().getBalance()).isEqualTo(100000000001052L);
        //check that transaction is recorded
        long nbTransaction = transactionRepository.count();
@@ -143,12 +143,12 @@ public class transactionIT {
         int tessaId = 7;
         //set tessa balance to 100000000000000
         User tessa = userRepository.findByEmail(tessaEmail).get();
-        tessa.setBalance(100000000000000000L);
+        tessa.setBalance(105000000000000000L);
         userRepository.save(tessa);
 
         //check balance of john and tessa before transaction
         assertThat(userRepository.findByEmail(johnEmail).get().getBalance()).isEqualTo(1200);
-        assertThat(userRepository.findByEmail(tessaEmail).get().getBalance()).isEqualTo(100000000000000000L);
+        assertThat(userRepository.findByEmail(tessaEmail).get().getBalance()).isEqualTo(105000000000000000L);
 
         //execute transaction from tessa to john
         this.mvc.perform(MockMvcRequestBuilders.post("/transfer")
@@ -167,7 +167,7 @@ public class transactionIT {
 
         //check balance of john and tessa after transaction
         assertThat(userRepository.findByEmail(johnEmail).get().getBalance()).isEqualTo(100000000000001199L);
-        assertThat(userRepository.findByEmail(tessaEmail).get().getBalance()).isEqualTo(1L);
+        assertThat(userRepository.findByEmail(tessaEmail).get().getBalance()).isEqualTo(2L);
         //check that transaction is recorded
         long nbTransaction = transactionRepository.count();
         Transaction lastTransaction = transactionRepository.findById((int)nbTransaction).get();

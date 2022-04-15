@@ -400,7 +400,7 @@ class UserServiceTest {
         verify(userRepository).save(principalUser);
         verify(userRepository).save(connectionUser);
 
-        assertThat(principalUser.getBalance()).isEqualTo(1508);
+        assertThat(principalUser.getBalance()).isEqualTo(1483);
         assertThat(connectionUser.getBalance()).isEqualTo(1505);
 
         Transaction transfer = principalUser.getTransactionsAsPayer().get(0);

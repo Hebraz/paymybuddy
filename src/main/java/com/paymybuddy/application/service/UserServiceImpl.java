@@ -255,7 +255,7 @@ public class UserServiceImpl implements UserService {
 
             Transaction transfer = transactionFromDto(transactionDto);
 
-            updateUserBalance(user,-transfer.getTotalAmount());
+            updateUserBalance(user,-transfer.getTotalAmount() -transfer.getFeeAmount());
             updateUserBalance(connectionUser,transfer.getTotalAmount());
 
             user.addTransactionAsPayer(transfer);
